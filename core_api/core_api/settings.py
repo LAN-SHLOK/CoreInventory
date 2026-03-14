@@ -37,9 +37,20 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    
+    # 3rd Party Apps
+    'rest_framework',
+    'rest_framework_simplejwt',
+    'corsheaders',
+    'django_filters',
+    
+    # Your Team's Apps
+    'identity',
+    'stock_ledger',
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware', # MUST BE AT THE VERY TOP
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -115,3 +126,22 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+# --- HACKATHON CONFIGURATIONS ---
+
+# 1. Allow Shlok and Jyoti's React app (port 3000) to bypass security blocks
+CORS_ALLOW_ALL_ORIGINS = True 
+
+# 2. Lock down Django REST Framework to require JWT Tokens
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
+
+# 3. Configure the JWT Tokens to last for 24 hours (so you don't get logged out during the hackathon)
+from datetime import timedelta
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
+    'AUTH_HEADER_TYPES': ('Bearer',),
+}

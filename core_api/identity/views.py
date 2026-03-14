@@ -85,9 +85,9 @@ class ForgotPasswordView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        try:
-            user = User.objects.get(email__iexact=email)
-        except User.DoesNotExist:
+        # Use .filter().first() to handle cases with duplicate emails safely
+        user = User.objects.filter(email__iexact=email).first()
+        if not user:
             # Security: don't reveal if email exists
             return Response(
                 {'detail': 'If this email exists, a reset code has been sent.'},
@@ -152,9 +152,9 @@ class VerifyResetCodeView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        try:
-            user = User.objects.get(email__iexact=email)
-        except User.DoesNotExist:
+        # Use .filter().first() to handle cases with duplicate emails safely
+        user = User.objects.filter(email__iexact=email).first()
+        if not user:
             return Response(
                 {'detail': 'Invalid or expired code.'},
                 status=status.HTTP_400_BAD_REQUEST

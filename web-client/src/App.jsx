@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './services/AuthContext'
 import Sidebar from './components/Sidebar'
@@ -9,7 +10,44 @@ import Receipts from './pages/operations/Reciepts'
 import Deliveries from './pages/operations/Deliveries'
 import MoveHistory from './pages/operations/MoveHistory'
 import Products from './pages/products/Products'
+import { ShieldX } from 'lucide-react'
 
+// ── Access Denied Toast ───────────────────────────────
+// Listens for the global 'access-denied' event fired by api.js
+// when Django returns a 403 Forbidden response.
+function AccessDeniedToast() {
+  const [visible, setVisible] = useState(false)
+
+  useEffect(() => {
+    const handler = () => {
+      setVisible(true)
+      // Auto-hide after 4 seconds
+      setTimeout(() => setVisible(false), 4000)
+    }
+    window.addEventListener('access-denied', handler)
+    return () => window.removeEventListener('access-denied', handler)
+  }, [])
+
+  if (!visible) return null
+
+  return (
+    <div className="fixed top-5 right-5 z-[9999] flex items-center gap-3 bg-red-500/10 border border-red-500/30 text-red-400 text-sm rounded-xl px-4 py-3 shadow-2xl backdrop-blur-sm animate-fade-in">
+      <ShieldX size={16} className="flex-shrink-0" />
+      <div>
+        <p className="font-medium text-red-300">Access Denied</p>
+        <p className="text-xs text-red-400/80 mt-0.5">You need Manager permissions to do this.</p>
+      </div>
+      <button
+        onClick={() => setVisible(false)}
+        className="ml-2 text-red-500/60 hover:text-red-400 transition-colors text-lg leading-none"
+      >
+        ×
+      </button>
+    </div>
+  )
+}
+
+// ── Loading Spinner ───────────────────────────────────
 function Spinner() {
   return (
     <div className="flex h-screen items-center justify-center bg-[#0a0c10]">
@@ -24,12 +62,12 @@ function Spinner() {
   )
 }
 
+// ── Routes ────────────────────────────────────────────
 function AppRoutes() {
   const { user, loading } = useAuth()
 
   if (loading) return <Spinner />
 
-  // ── Not logged in → only public pages ────────────
   if (!user) {
     return (
       <Routes>
@@ -41,7 +79,6 @@ function AppRoutes() {
     )
   }
 
-  // ── Logged in → only protected pages ─────────────
   return (
     <div className="flex h-screen bg-[#0a0c10] text-gray-100 overflow-hidden">
       <Sidebar />
@@ -59,10 +96,13 @@ function AppRoutes() {
   )
 }
 
+// ── App Root ──────────────────────────────────────────
 export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
+        {/* Toast sits outside routes so it shows on every page */}
+        <AccessDeniedToast />
         <AppRoutes />
       </BrowserRouter>
     </AuthProvider>

@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import UserSerializer
+from .utils import send_brevo_email
 from .models import PasswordResetOTP
 
 
@@ -100,27 +101,36 @@ class ForgotPasswordView(APIView):
         otp = PasswordResetOTP.generate_otp()
         PasswordResetOTP.objects.create(user=user, otp=otp)
 
-        # Send via Brevo SMTP
+        # --- INTEGRATED BREVO API LOGIC ---
+        subject = 'CoreInventory — Your Password Reset Code'
+        html_content = f'''
+            <div style="font-family: sans-serif; padding: 20px; color: #333;">
+                <h2 style="color: #2d89ef;">Password Reset Request</h2>
+                <p>Hi {user.first_name or user.username},</p>
+                <p>You requested a password reset for your CoreInventory account. Use the code below to proceed:</p>
+                <div style="background: #f4f4f4; padding: 15px; font-size: 1.5em; text-align: center; letter-spacing: 5px; font-weight: bold; border-radius: 5px;">
+                    {otp}
+                </div>
+                <p>This code <strong>expires in 10 minutes</strong>.</p>
+                <p>If you did not request this, please ignore this email.</p>
+                <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+                <p style="font-size: 0.8em; color: #888;">— The CoreInventory Team</p>
+            </div>
+        '''
+
         try:
-            send_mail(
-                subject='CoreInventory — Your Password Reset Code',
-                message=f'''Hi {user.first_name or user.username},
-
-Your password reset code is:
-
-{otp}
-
-This code expires in 10 minutes.
-If you did not request this, please ignore this email.
-
-— CoreInventory Team''',
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[user.email],
-                fail_silently=False,
+            # Using your utility function instead of send_mail
+            send_brevo_email(
+                subject=subject,
+                html_content=html_content,
+                to_email=user.email,
+                to_name=user.username
             )
-        except Exception:
+        except Exception as e:
+            # Log the error to your terminal for debugging
+            print(f"Brevo API Error: {e}")
             return Response(
-                {'detail': 'Failed to send email. Please try again.'},
+                {'detail': 'Failed to send reset code. Please try again later.'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
@@ -128,7 +138,6 @@ If you did not request this, please ignore this email.
             {'detail': 'If this email exists, a reset code has been sent.'},
             status=status.HTTP_200_OK
         )
-
 
 class VerifyResetCodeView(APIView):
     permission_classes = (AllowAny,)

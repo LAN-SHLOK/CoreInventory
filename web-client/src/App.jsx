@@ -1,86 +1,70 @@
-import React, { useState } from 'react';
-import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
-import { Menu, X, LayoutDashboard, Package, ArrowDownToLine, Truck, History, LogOut } from 'lucide-react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { AuthProvider, useAuth } from './services/AuthContext'
+import Sidebar from './components/Sidebar'
+import Login from './pages/auth/Login'
+import Register from './pages/auth/Register'
+import ForgotPassword from './pages/auth/ForgotPassword'
+import Dashboard from './pages/dashboard/Dashboard'
+import Receipts from './pages/operations/Reciepts'
+import Deliveries from './pages/operations/Deliveries'
+import MoveHistory from './pages/operations/MoveHistory'
+import Products from './pages/products/Products'
 
-import Dashboard from './pages/dashboard/Dashboard';
-
-// --- TEMPORARY PAGE PLACEHOLDERS ---
-const Login = () => <div className="flex h-screen items-center justify-center bg-slate-100"><h1 className="text-3xl font-bold">🔐 Login Screen</h1></div>;
-const Products = () => <div className="p-8"><h1 className="text-3xl font-bold text-slate-800">Stock / Products</h1></div>;
-const Receipts = () => <div className="p-8"><h1 className="text-3xl font-bold text-slate-800">Incoming Receipts</h1></div>;
-const Deliveries = () => <div className="p-8"><h1 className="text-3xl font-bold text-slate-800">Outgoing Deliveries</h1></div>;
-const MoveHistory = () => <div className="p-8"><h1 className="text-3xl font-bold text-slate-800">Move History Ledger</h1></div>;
-
-// --- COLLAPSIBLE SIDEBAR ---
-const Sidebar = () => {
-  const [isOpen, setIsOpen] = useState(false); 
-  const location = useLocation();
-  
-  const menu = [
-    { name: 'Dashboard', path: '/', icon: <LayoutDashboard size={22} /> },
-    { name: 'Stock / Products', path: '/products', icon: <Package size={22} /> },
-    { name: 'Receipts', path: '/receipts', icon: <ArrowDownToLine size={22} /> },
-    { name: 'Deliveries', path: '/deliveries', icon: <Truck size={22} /> },
-    { name: 'Move History', path: '/history', icon: <History size={22} /> },
-  ];
-
+function Spinner() {
   return (
-    <div className={`${isOpen ? 'w-64' : 'w-20'} bg-slate-900 text-slate-300 flex flex-col h-full shadow-xl z-20 transition-all duration-300 ease-in-out`}>
-      <div className="h-20 flex items-center justify-between px-4 border-b border-slate-800">
-        {isOpen && (
-          <h2 className="text-2xl font-bold text-white tracking-wider ml-2 whitespace-nowrap overflow-hidden">
-            CORE<span className="text-indigo-500">INV</span>
-          </h2>
-        )}
-        <button onClick={() => setIsOpen(!isOpen)} className={`p-2 hover:bg-slate-800 rounded-lg text-slate-300 transition-colors ${!isOpen && 'mx-auto'}`}>
-          {isOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
-      </div>
-      
-      <nav className="flex-1 px-3 space-y-2 mt-6 overflow-hidden">
-        {menu.map((item) => {
-          const isActive = location.pathname === item.path;
-          return (
-            <Link key={item.name} to={item.path} title={!isOpen ? item.name : ""} className={`flex items-center py-3 rounded-lg transition-colors font-medium ${isOpen ? 'px-4 justify-start' : 'justify-center'} ${isActive ? 'bg-indigo-600 text-white shadow-md' : 'hover:bg-slate-800 hover:text-white'}`}>
-              <span className="flex-shrink-0">{item.icon}</span>
-              {isOpen && <span className="ml-4 whitespace-nowrap">{item.name}</span>}
-            </Link>
-          );
-        })}
-      </nav>
-      
-      <div className="p-4 border-t border-slate-800">
-        <Link to="/login" title={!isOpen ? "Log Out" : ""} className={`flex items-center py-3 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition-colors ${isOpen ? 'px-4 justify-start' : 'justify-center'}`}>
-          <span className="flex-shrink-0"><LogOut size={22} /></span>
-          {isOpen && <span className="ml-4 whitespace-nowrap">Log Out</span>}
-        </Link>
+    <div className="flex h-screen items-center justify-center bg-[#0a0c10]">
+      <div className="flex flex-col items-center gap-4">
+        <div className="relative w-10 h-10">
+          <div className="absolute inset-0 rounded-full border-2 border-emerald-500/20" />
+          <div className="absolute inset-0 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin" />
+        </div>
+        <p className="text-xs text-gray-600 tracking-wider uppercase">Loading</p>
       </div>
     </div>
-  );
-};
+  )
+}
 
-// --- MAIN LAYOUT SHELL ---
-const MainLayout = ({ children }) => (
-  <div className="flex h-screen w-full bg-slate-50 font-sans overflow-hidden">
-    <Sidebar />
-    <div className="flex-1 overflow-y-auto">
-      {children}
+function AppRoutes() {
+  const { user, loading } = useAuth()
+
+  if (loading) return <Spinner />
+
+  // ── Not logged in → only public pages ────────────
+  if (!user) {
+    return (
+      <Routes>
+        <Route path="/login"           element={<Login />} />
+        <Route path="/register"        element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="*"                element={<Navigate to="/login" replace />} />
+      </Routes>
+    )
+  }
+
+  // ── Logged in → only protected pages ─────────────
+  return (
+    <div className="flex h-screen bg-[#0a0c10] text-gray-100 overflow-hidden">
+      <Sidebar />
+      <main className="flex-1 overflow-y-auto bg-grid">
+        <Routes>
+          <Route path="/"             element={<Dashboard />} />
+          <Route path="/receipts"     element={<Receipts />} />
+          <Route path="/deliveries"   element={<Deliveries />} />
+          <Route path="/move-history" element={<MoveHistory />} />
+          <Route path="/products"     element={<Products />} />
+          <Route path="*"             element={<Navigate to="/" replace />} />
+        </Routes>
+      </main>
     </div>
-  </div>
-);
+  )
+}
 
-// --- APP ROUTER ---
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/" element={<MainLayout><Dashboard /></MainLayout>} />
-        <Route path="/products" element={<MainLayout><Products /></MainLayout>} />
-        <Route path="/receipts" element={<MainLayout><Receipts /></MainLayout>} />
-        <Route path="/deliveries" element={<MainLayout><Deliveries /></MainLayout>} />
-        <Route path="/history" element={<MainLayout><MoveHistory /></MainLayout>} />
-      </Routes>
-    </BrowserRouter>
-  );
+    <AuthProvider>
+      <BrowserRouter>
+        <AppRoutes />
+      </BrowserRouter>
+    </AuthProvider>
+  )
 }

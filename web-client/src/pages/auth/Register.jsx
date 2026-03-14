@@ -1,15 +1,17 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { useAuth } from '../../services/AuthContext'
+import { authAPI } from '../../api'
 import {
   Boxes, Eye, EyeOff, AlertCircle,
-  ArrowRight, Lock, User
+  ArrowRight, Lock, User, Mail
 } from 'lucide-react'
 
-export default function Login() {
-  const { login } = useAuth()
-  const navigate  = useNavigate()
-  const [form,     setForm]     = useState({ username: '', password: '' })
+export default function Register() {
+  const navigate = useNavigate()
+  const [form, setForm] = useState({
+    first_name: '', last_name: '',
+    username: '', email: '', password: ''
+  })
   const [showPass, setShowPass] = useState(false)
   const [loading,  setLoading]  = useState(false)
   const [error,    setError]    = useState('')
@@ -21,7 +23,20 @@ export default function Login() {
     setError('')
     setLoading(true)
     try {
-      await login(form)
+      // Step 1: Register
+      await authAPI.register(form)
+
+      // Step 2: Auto-login with same credentials
+      const { data } = await authAPI.login({
+        username: form.username,
+        password: form.password,
+      })
+
+      // Step 3: Save tokens
+      localStorage.setItem('access_token', data.access)
+      localStorage.setItem('refresh_token', data.refresh)
+
+      // Step 4: Go straight to dashboard
       navigate('/')
     } catch (err) {
       const data = err.response?.data
@@ -29,7 +44,7 @@ export default function Login() {
         const first = Object.values(data)[0]
         setError(Array.isArray(first) ? first[0] : first)
       } else {
-        setError('Invalid credentials. Please try again.')
+        setError('Registration failed. Please try again.')
       }
     } finally {
       setLoading(false)
@@ -55,12 +70,12 @@ export default function Login() {
 
         <div className="mb-auto">
           <h2 className="text-3xl font-bold text-white mb-4 leading-tight">
-            Your warehouse,<br />
-            <span className="text-emerald-400">under control.</span>
+            Join your team,<br />
+            <span className="text-emerald-400">start managing.</span>
           </h2>
           <p className="text-gray-500 text-sm leading-relaxed">
-            Track stock, manage receipts and deliveries, and monitor
-            every movement across your warehouse in real time.
+            Create your account to access real-time stock tracking,
+            receipts, deliveries, and warehouse operations.
           </p>
         </div>
 
@@ -91,14 +106,11 @@ export default function Login() {
           </div>
 
           <div className="mb-8">
-            <h1 className="text-2xl font-bold text-white mb-1.5">Sign in</h1>
+            <h1 className="text-2xl font-bold text-white mb-1.5">Create account</h1>
             <p className="text-sm text-gray-500">
-              Don't have an account?{' '}
-              <Link
-                to="/register"
-                className="text-emerald-400 hover:text-emerald-300 transition-colors font-medium"
-              >
-                Create one
+              Already have an account?{' '}
+              <Link to="/login" className="text-emerald-400 hover:text-emerald-300 transition-colors font-medium">
+                Sign in
               </Link>
             </p>
           </div>
@@ -112,21 +124,70 @@ export default function Login() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
 
-            {/* Username or Email */}
+            {/* First + Last name in ONE row */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-400 mb-1.5">
+                  First Name
+                </label>
+                <input
+                  type="text"
+                  className="input"
+                  placeholder="John"
+                  value={form.first_name}
+                  onChange={set('first_name')}
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-400 mb-1.5">
+                  Last Name
+                </label>
+                <input
+                  type="text"
+                  className="input"
+                  placeholder="Doe"
+                  value={form.last_name}
+                  onChange={set('last_name')}
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Username */}
             <div>
               <label className="block text-xs font-medium text-gray-400 mb-1.5">
-                Username or Email
+                Username
               </label>
               <div className="relative">
                 <User size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-600" />
                 <input
                   type="text"
                   className="input pl-9"
-                  placeholder="Enter username or email"
+                  placeholder="johndoe"
                   value={form.username}
                   onChange={set('username')}
                   required
                   autoComplete="username"
+                />
+              </div>
+            </div>
+
+            {/* Email */}
+            <div>
+              <label className="block text-xs font-medium text-gray-400 mb-1.5">
+                Email
+              </label>
+              <div className="relative">
+                <Mail size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-600" />
+                <input
+                  type="email"
+                  className="input pl-9"
+                  placeholder="john@example.com"
+                  value={form.email}
+                  onChange={set('email')}
+                  required
+                  autoComplete="email"
                 />
               </div>
             </div>
@@ -141,11 +202,11 @@ export default function Login() {
                 <input
                   type={showPass ? 'text' : 'password'}
                   className="input pl-9 pr-10"
-                  placeholder="Enter your password"
+                  placeholder="Create a strong password"
                   value={form.password}
                   onChange={set('password')}
                   required
-                  autoComplete="current-password"
+                  autoComplete="new-password"
                 />
                 <button
                   type="button"
@@ -157,16 +218,6 @@ export default function Login() {
               </div>
             </div>
 
-            {/* Forgot password */}
-            <div className="flex justify-end">
-              <Link
-                to="/forgot-password"
-                className="text-xs text-gray-500 hover:text-emerald-400 transition-colors"
-              >
-                Forgot password?
-              </Link>
-            </div>
-
             <button
               type="submit"
               disabled={loading}
@@ -175,11 +226,11 @@ export default function Login() {
               {loading ? (
                 <>
                   <span className="w-4 h-4 border-2 border-gray-900 border-t-transparent rounded-full animate-spin" />
-                  Signing in...
+                  Creating account...
                 </>
               ) : (
                 <>
-                  Sign In
+                  Create Account
                   <ArrowRight size={14} />
                 </>
               )}

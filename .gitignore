@@ -1,0 +1,63 @@
+# =========================
+# Django / Python Backend
+# =========================
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environments
+venv/
+env/
+ENV/
+.venv/
+
+# Database (CRITICAL: Do not share the local SQLite db)
+db.sqlite3
+db.sqlite3-journal
+
+# Environment variables (Secrets, API keys)
+.env
+.env.local
+
+# Django specific
+*.log
+local_settings.py
+
+# =========================
+# React / Node Frontend
+# =========================
+# Dependencies
+web-client/node_modules/
+node_modules/
+.pnp
+.pnp.js
+
+# Production builds
+web-client/build/
+build/
+dist/
+
+# NPM/Yarn Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# =========================
+# OS & Editor Files
+# =========================
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Mac (Just in case someone on the team uses one)
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# IDEs (VS Code, PyCharm)
+.vscode/
+.idea/
+*.swp
+*.swo

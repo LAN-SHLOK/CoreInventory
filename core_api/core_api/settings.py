@@ -1,0 +1,1 @@
+# ANY_VARIABLE_NAME = "" # Leave it empty or use a placeholder  

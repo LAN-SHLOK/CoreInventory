@@ -8,6 +8,7 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .serializers import UserSerializer
+from .utils import send_brevo_email
 from .models import PasswordResetOTP
 from .utils import send_brevo_email # Crucial for API delivery
 
@@ -84,9 +85,9 @@ class ForgotPasswordView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        try:
-            user = User.objects.get(email__iexact=email)
-        except User.DoesNotExist:
+        # Use .filter().first() to handle cases with duplicate emails safely
+        user = User.objects.filter(email__iexact=email).first()
+        if not user:
             # Security: don't reveal if email exists
             return Response(
                 {'detail': 'If this email exists, a reset code has been sent.'},
@@ -138,7 +139,6 @@ class ForgotPasswordView(APIView):
             status=status.HTTP_200_OK
         )
 
-
 class VerifyResetCodeView(APIView):
     permission_classes = (AllowAny,)
 
@@ -152,9 +152,9 @@ class VerifyResetCodeView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        try:
-            user = User.objects.get(email__iexact=email)
-        except User.DoesNotExist:
+        # Use .filter().first() to handle cases with duplicate emails safely
+        user = User.objects.filter(email__iexact=email).first()
+        if not user:
             return Response(
                 {'detail': 'Invalid or expired code.'},
                 status=status.HTTP_400_BAD_REQUEST

@@ -1,34 +1,46 @@
 import { useState, useEffect } from 'react'
-import { stockAPI } from '../../api'
+import { productsAPI } from '../../api'
 import {
   Search, RefreshCw, Boxes, AlertCircle,
-  Edit2, Check, X, TrendingDown, TrendingUp, Filter
+  Edit2, Check, X, TrendingDown, TrendingUp,
+  Filter, ChevronLeft, ChevronRight
 } from 'lucide-react'
 
-function StockLevel({ onHand }) {
-  if (onHand === undefined || onHand === null) return <span className="text-gray-700">—</span>
-  const level = onHand > 50 ? 'high' : onHand > 10 ? 'mid' : 'low'
-  const bar = { high: 'bg-emerald-500', mid: 'bg-amber-500', low: 'bg-red-500' }
-  const pct = Math.min(100, (onHand / 100) * 100)
+// ── Stock level bar ───────────────────────────────────
+// Uses only current_stock — backend field name
+function StockLevel({ current }) {
+  if (current == null) return <span className="text-gray-700">—</span>
+  const isLow  = current <= 10
+  const isMid  = current <= 50
+  const color  = isLow ? 'bg-red-500' : isMid ? 'bg-amber-500' : 'bg-emerald-500'
+  const pct    = Math.min(100, (current / 100) * 100)
+
   return (
     <div className="flex items-center gap-2.5">
-      <span className="text-sm text-gray-200 mono tabular-nums w-10 text-right">{onHand}</span>
+      <span className="text-sm text-gray-200 mono tabular-nums w-10 text-right">{current}</span>
       <div className="flex-1 h-1.5 bg-[#1a1d24] rounded-full overflow-hidden w-16">
-        <div className={`h-full rounded-full transition-all ${bar[level]}`} style={{ width: `${pct}%` }} />
+        <div className={`h-full rounded-full transition-all ${color}`} style={{ width: `${pct}%` }} />
       </div>
-      {level === 'low' && <TrendingDown size={11} className="text-red-400 flex-shrink-0" />}
-      {level === 'high' && <TrendingUp size={11} className="text-emerald-400 flex-shrink-0" />}
+      {isLow && <TrendingDown size={11} className="text-red-400 flex-shrink-0" />}
+      {!isLow && !isMid && <TrendingUp size={11} className="text-emerald-400 flex-shrink-0" />}
     </div>
   )
 }
 
-function EditableCell({ value, onSave }) {
+// ── Inline editable stock cell ────────────────────────
+function EditableStock({ productId, value, onSaved }) {
   const [editing, setEditing] = useState(false)
-  const [val, setVal] = useState(value)
+  const [val, setVal]         = useState(value)
 
   const save = async () => {
-    try { await onSave(Number(val)); setEditing(false) }
-    catch { alert('Failed to update') }
+    try {
+      // FIX: backend field is current_stock, not on_hand
+      await productsAPI.updateStock(productId, Number(val))
+      onSaved()
+      setEditing(false)
+    } catch {
+      alert('Failed to update stock')
+    }
   }
 
   if (editing) return (
@@ -38,7 +50,10 @@ function EditableCell({ value, onSave }) {
         className="input-sm w-20"
         value={val}
         onChange={(e) => setVal(e.target.value)}
-        onKeyDown={(e) => { if (e.key === 'Enter') save(); if (e.key === 'Escape') setEditing(false) }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter')  save()
+          if (e.key === 'Escape') setEditing(false)
+        }}
         autoFocus
         min={0}
       />
@@ -53,7 +68,7 @@ function EditableCell({ value, onSave }) {
 
   return (
     <div className="flex items-center gap-2 group">
-      <StockLevel onHand={value} />
+      <StockLevel current={value} />
       <button
         onClick={() => setEditing(true)}
         className="opacity-0 group-hover:opacity-100 text-gray-700 hover:text-gray-400 transition-all p-0.5"
@@ -65,58 +80,72 @@ function EditableCell({ value, onSave }) {
   )
 }
 
+// ── Main Products page ────────────────────────────────
 export default function Products() {
   const [products, setProducts] = useState([])
-  const [stock, setStock] = useState([])
-  const [search, setSearch] = useState('')
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+  const [search, setSearch]     = useState('')
+  const [category, setCategory] = useState('')
+  const [loading, setLoading]   = useState(true)
+  const [error, setError]       = useState('')
 
-  const fetchData = async () => {
+  // Pagination — backend sends next/previous URLs + count
+  const [nextUrl, setNextUrl]   = useState(null)
+  const [prevUrl, setPrevUrl]   = useState(null)
+  const [count, setCount]       = useState(0)
+  const [page, setPage]         = useState(1)
+
+  const fetchProducts = async (pageNum = 1) => {
     setLoading(true); setError('')
     try {
-      const [pRes, sRes] = await Promise.all([
-        stockAPI.getProducts(),
-        stockAPI.getStockEntries(),
-      ])
-      setProducts(pRes.data.results || pRes.data)
-      setStock(sRes.data.results || sRes.data)
-    } catch { setError('Failed to load stock data') }
-    finally { setLoading(false) }
+      // search  → SearchFilter on name, sku  (backend: search_fields = ['name', 'sku'])
+      // category → DjangoFilterBackend       (backend: filterset_fields = ['category'])
+      // page    → PageNumberPagination       (backend: PAGE_SIZE = 20)
+      const { data } = await productsAPI.getAll({
+        ...(search   ? { search }   : {}),
+        ...(category ? { category } : {}),
+        page: pageNum,
+      })
+
+      // Paginated response shape: { results: [], next, previous, count }
+      setProducts(data.results || data)
+      setNextUrl(data.next     || null)
+      setPrevUrl(data.previous || null)
+      setCount(data.count      || 0)
+      setPage(pageNum)
+    } catch {
+      setError('Failed to load products')
+    } finally {
+      setLoading(false)
+    }
   }
 
-  useEffect(() => { fetchData() }, [])
+  useEffect(() => { fetchProducts(1) }, [])
 
-  const merged = products
-    .filter(p => !search ||
-      p.name?.toLowerCase().includes(search.toLowerCase()) ||
-      p.sku?.toLowerCase().includes(search.toLowerCase())
-    )
-    .map(p => ({ ...p, entry: stock.find(s => s.product === p.id) || {} }))
-
-  const totalValue = merged.reduce((acc, p) => acc + ((p.entry?.on_hand || 0) * (p.unit_cost || 0)), 0)
-  const lowStock = merged.filter(p => (p.entry?.on_hand || 0) <= 10).length
+  // Low stock threshold = 10 (fixed, since reorder_level not in serializer)
+  const lowStock = products.filter(p => p.current_stock <= 10).length
 
   return (
     <div className="page-container animate-fade-in">
+
+      {/* Header */}
       <div className="page-header flex-wrap gap-4">
         <div>
-          <h1 className="page-title">Stock</h1>
-          <p className="page-subtitle">Products and inventory levels · hover a row to edit qty</p>
+          <h1 className="page-title">Products</h1>
+          <p className="page-subtitle">Inventory catalogue · hover a row to edit stock qty</p>
         </div>
-        <button onClick={fetchData} className="btn-secondary btn-sm">
+        <button onClick={() => fetchProducts(page)} className="btn-secondary btn-sm">
           <RefreshCw size={12} className={loading ? 'animate-spin' : ''} />
           Refresh
         </button>
       </div>
 
-      {/* Summary */}
+      {/* Summary cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
         {[
-          { label: 'Total Products', value: merged.length, color: 'text-white' },
-          { label: 'Low Stock',      value: lowStock,       color: 'text-red-400' },
-          { label: 'Total Value',    value: `₹${totalValue.toLocaleString('en-IN')}`, color: 'text-emerald-400' },
-          { label: 'In Stock',       value: merged.filter(p => (p.entry?.on_hand || 0) > 0).length, color: 'text-blue-400' },
+          { label: 'Total Products', value: count,                                            color: 'text-white'     },
+          { label: 'Low Stock',      value: lowStock,                                         color: 'text-red-400'   },
+          { label: 'This Page',      value: products.length,                                  color: 'text-blue-400'  },
+          { label: 'In Stock',       value: products.filter(p => p.current_stock > 0).length, color: 'text-emerald-400' },
         ].map(({ label, value, color }) => (
           <div key={label} className="card px-4 py-3">
             <p className={`text-lg font-bold ${color} tabular-nums`}>{value}</p>
@@ -125,18 +154,28 @@ export default function Products() {
         ))}
       </div>
 
-      <div className="flex gap-2 mb-6">
-        <div className="relative flex-1 max-w-md">
+      {/* Search + Filter bar */}
+      <div className="flex gap-2 mb-6 flex-wrap">
+        <div className="relative flex-1 min-w-[200px] max-w-md">
           <Search size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-600" />
           <input
             className="input pl-9"
-            placeholder="Search by product name or SKU..."
+            placeholder="Search by name or SKU..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && fetchProducts(1)}
           />
         </div>
-        <button className="btn-secondary btn-sm">
-          <Filter size={12} /> Filter
+        {/* category filter → backend: filterset_fields = ['category'] */}
+        <input
+          className="input w-44"
+          placeholder="Category filter..."
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && fetchProducts(1)}
+        />
+        <button onClick={() => fetchProducts(1)} className="btn-secondary btn-sm">
+          <Filter size={12} /> Apply
         </button>
       </div>
 
@@ -146,54 +185,83 @@ export default function Products() {
         </div>
       )}
 
+      {/* Table */}
       <div className="card overflow-hidden">
         <table className="w-full">
           <thead>
             <tr className="border-b border-[#1a1d24]">
+              {/* Only columns for fields backend actually sends */}
               <th className="table-head">Product</th>
               <th className="table-head">SKU</th>
-              <th className="table-head">Unit Cost</th>
+              <th className="table-head">Category</th>
+              <th className="table-head">Unit</th>
               <th className="table-head">On Hand</th>
-              <th className="table-head">Free to Use</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr><td colSpan={5}>
                 <div className="flex items-center justify-center py-16 gap-2 text-gray-600 text-sm">
-                  <RefreshCw size={14} className="animate-spin" /> Loading stock...
+                  <RefreshCw size={14} className="animate-spin" /> Loading products...
                 </div>
               </td></tr>
-            ) : merged.length === 0 ? (
+            ) : products.length === 0 ? (
               <tr><td colSpan={5}>
                 <div className="text-center py-16">
                   <Boxes size={32} className="text-gray-800 mx-auto mb-3" />
                   <p className="text-sm text-gray-600">No products found</p>
-                  <p className="text-xs text-gray-700 mt-1">Connect the backend to see stock data</p>
+                  <p className="text-xs text-gray-700 mt-1">Try a different search or category</p>
                 </div>
               </td></tr>
-            ) : merged.map((p) => (
+            ) : products.map((p) => (
               <tr key={p.id} className="border-b border-[#1a1d24] hover:bg-[#13151c] transition-colors">
+                {/* p.name — backend field ✓ */}
                 <td className="table-cell font-medium text-gray-200">{p.name}</td>
-                <td className="table-cell mono text-xs text-gray-500">{p.sku || '—'}</td>
-                <td className="table-cell text-gray-300 mono">
-                  {p.unit_cost != null ? `₹${Number(p.unit_cost).toLocaleString('en-IN')}` : '—'}
-                </td>
+                {/* p.sku — backend field ✓ */}
+                <td className="table-cell mono text-xs text-gray-500">{p.sku}</td>
+                {/* p.category — backend field ✓ */}
+                <td className="table-cell text-gray-400 text-sm">{p.category}</td>
+                {/* p.unit_of_measure — backend field ✓ */}
+                <td className="table-cell text-gray-400 text-sm">{p.unit_of_measure}</td>
+                {/* p.current_stock — backend field ✓, editable inline */}
                 <td className="table-cell">
-                  {p.entry?.id
-                    ? <EditableCell
-                        value={p.entry.on_hand}
-                        onSave={(val) => stockAPI.updateStock(p.entry.id, { on_hand: val }).then(fetchData)}
-                      />
-                    : <span className="text-gray-700 text-sm">—</span>
-                  }
+                  <EditableStock
+                    productId={p.id}
+                    value={p.current_stock}
+                    onSaved={() => fetchProducts(page)}
+                  />
                 </td>
-                <td className="table-cell mono text-gray-400">{p.entry?.free_to_use ?? '—'}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
+      {/* Pagination — next/previous from paginated response */}
+      {(prevUrl || nextUrl) && (
+        <div className="flex items-center justify-between mt-4 px-1">
+          <p className="text-xs text-gray-600">
+            Page {page} · {count} total products
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => fetchProducts(page - 1)}
+              disabled={!prevUrl}
+              className="btn-secondary btn-sm disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              <ChevronLeft size={13} /> Previous
+            </button>
+            <button
+              onClick={() => fetchProducts(page + 1)}
+              disabled={!nextUrl}
+              className="btn-secondary btn-sm disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              Next <ChevronRight size={13} />
+            </button>
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }

@@ -1,4 +1,3 @@
-# identity/utils.py
 import sib_api_v3_sdk
 from sib_api_v3_sdk.rest import ApiException
 from django.conf import settings
@@ -9,7 +8,7 @@ def send_brevo_email(subject, html_content, to_email, to_name="User"):
     
     api_instance = sib_api_v3_sdk.TransactionalEmailsApi(sib_api_v3_sdk.ApiClient(configuration))
     
-    # Ensure this email is "Verified" in your Brevo Dashboard
+    # Ensure this email is verified in your Brevo Dashboard
     sender = {"name": "CoreInventory", "email": "a4e8cb001@smtp-brevo.com"}
     to = [{"email": to_email, "name": to_name}]
     

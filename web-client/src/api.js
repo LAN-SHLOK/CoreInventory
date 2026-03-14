@@ -70,6 +70,7 @@ export const authAPI = {
 },
   logout: () => localStorage.clear(),
 }
+
 // ── Dashboard ─────────────────────────────────────────
 // GET /api/dashboard/kpis/ → { total_products, low_stock_alerts, total_movements }
 // GET /api/movements/      → paginated movements for recent activity
@@ -145,13 +146,13 @@ export const stockAPI = {
     const items = data.results || data
     return {
       data: items.map(p => ({
-        id:          p.id,
-        product:     p.id,
-        product_name: p.name,
-        sku:          p.sku,
-        on_hand:     p.current_stock,
+        id:            p.id,
+        product:       p.id,
+        product_name:  p.name,
+        sku:           p.sku,
+        on_hand:       p.current_stock,
         reorder_level: p.reorder_level,
-        free_to_use: p.current_stock,
+        free_to_use:   p.current_stock,
       }))
     }
   },
@@ -171,13 +172,13 @@ export const receiptsAPI = {
       ...res,
       data: {
         ...res.data,
-        results: (res.data.results || res.data).map(mapToReceipt)
+        results: (res.data.results || res.data).map(mapMovement)
       }
     })),
 
   getOne: (id) =>
     api.get(`/movements/${id}/`).then(res => ({
-      data: mapToReceipt(res.data)
+      data: mapMovement(res.data)
     })),
 
   create: (data) => api.post('/movements/', {
@@ -200,13 +201,13 @@ export const deliveriesAPI = {
       ...res,
       data: {
         ...res.data,
-        results: (res.data.results || res.data).map(mapToDelivery)
+        results: (res.data.results || res.data).map(mapMovement)
       }
     })),
 
   getOne: (id) =>
     api.get(`/movements/${id}/`).then(res => ({
-      data: mapToDelivery(res.data)
+      data: mapMovement(res.data)
     })),
 
   create: (data) => api.post('/movements/', {
@@ -227,24 +228,7 @@ export const movesAPI = {
       ...res,
       data: {
         ...res.data,
-        results: (res.data.results || res.data).map(m => ({
-          id:             m.id,
-          reference:      m.reference   || `MVE-${m.id}`,
-          movement_type:  m.movement_type,               // RECEIPT/DELIVERY/TRANSFER/ADJUSTMENT
-          product:        m.product,                     // product ID
-          product_name:   m.product_name || `#${m.product}`,
-          quantity:       m.quantity,
-          source:         m.source,                      // location ID
-          destination:    m.destination,                 // location ID
-          from_location:  m.source_name  || '—',
-          to_location:    m.dest_name    || '—',
-          contact:        m.contact      || '—',
-          schedule_date:  m.schedule_date
-            ? new Date(m.schedule_date).toLocaleDateString('en-IN')
-            : '—',
-          status:         m.status?.toLowerCase(),       // draft/done/cancelled
-          remarks:        m.remarks      || '',
-        }))
+        results: (res.data.results || res.data).map(mapMovement)
       }
     })),
 }
@@ -277,44 +261,61 @@ export const locationsAPI = {
   delete:  (id)       => api.delete(`/locations/${id}/`),
 }
 
-// ── Mappers ───────────────────────────────────────────
-function mapToReceipt(m) {
+// ── Shared Movement Mapper ────────────────────────────
+// Replaces old mapToReceipt + mapToDelivery
+// Used by receiptsAPI, deliveriesAPI, and movesAPI
+//
+// FIX 1: key is schedule_date not scheduled_date
+// FIX 2: from_location and to_location added (were missing in old mappers)
+// FIX 3: product_sku added to lines
+function mapMovement(m) {
   return {
-    id:               m.id,
-    reference:        m.reference     || `RCP-${m.id}`,
-    contact:          m.contact       || '—',     // ← FIXED: was vendor_name/source_name
-    source:           m.source,                   // location ID (null for receipts)
-    destination:      m.destination,              // location ID
-    scheduled_date:   m.schedule_date             // ← FIXED: was m.date
-      ? new Date(m.schedule_date).toLocaleDateString('en-IN')
-      : '—',
-    status:           m.status?.toLowerCase(),
-    remarks:          m.remarks       || '',
-    lines: [{
-      product:        m.product,                  // product ID
-      product_name:   m.product_name || `#${m.product}`,
-      quantity:       m.quantity,
-    }],
-  }
-}
+    id:            m.id,
 
-function mapToDelivery(m) {
-  return {
-    id:               m.id,
-    reference:        m.reference     || `DLV-${m.id}`,
-    contact:          m.contact       || '—',     // ← FIXED: was address/dest_name
-    source:           m.source,                   // location ID
-    destination:      m.destination,              // location ID (null for deliveries)
-    scheduled_date:   m.schedule_date             // ← FIXED: was m.date
+    // Auto-generated reference e.g. WH/IN/0001
+    reference:     m.reference     || `#${m.id}`,
+
+    // RECEIPT / DELIVERY / TRANSFER / ADJUSTMENT
+    movement_type: m.movement_type,
+
+    // Product
+    product:       m.product,                          // product ID
+    product_name:  m.product_name  || `#${m.product}`,
+    product_sku:   m.product_sku   || '',
+
+    // Quantity
+    quantity:      m.quantity,
+
+    // Locations
+    source:        m.source,                            // location ID (null for receipts)
+    destination:   m.destination,                       // location ID (null for deliveries)
+    // FIX 2: these were missing in old mapToReceipt/mapToDelivery
+    from_location: m.source_name   || '—',              // ← source_name from serializer
+    to_location:   m.dest_name     || '—',              // ← dest_name from serializer
+
+    // Vendor (receipts) or Customer (deliveries)
+    contact:       m.contact       || '—',
+
+    // FIX 1: key was 'scheduled_date' — components read 'schedule_date'
+    schedule_date: m.schedule_date
       ? new Date(m.schedule_date).toLocaleDateString('en-IN')
       : '—',
-    operation_type:   'Delivery',
-    status:           m.status?.toLowerCase(),
-    remarks:          m.remarks       || '',
+
+    // DRAFT/DONE/CANCELLED → lowercase for badge lookup
+    status:        m.status?.toLowerCase(),
+
+    // Notes
+    remarks:       m.remarks       || '',
+
+    // Who performed it
+    user_name:     m.user_name     || '—',
+
+    // Lines array — 1 product per movement in current backend
     lines: [{
-      product:        m.product,
-      product_name:   m.product_name || `#${m.product}`,
-      quantity:       m.quantity,
+      product:      m.product,
+      product_name: m.product_name || `#${m.product}`,
+      product_sku:  m.product_sku  || '',               // FIX 3: added
+      quantity:     m.quantity,
     }],
   }
 }

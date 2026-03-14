@@ -1,20 +1,20 @@
 from django.contrib.auth.models import User
 from django.db.models import Q
-from django.core.mail import send_mail
 from django.conf import settings
 from rest_framework import generics, status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
+
 from .serializers import UserSerializer
 from .models import PasswordResetOTP
-
+from .utils import send_brevo_email # Crucial for API delivery
 
 class RegisterView(generics.CreateAPIView):
-    queryset           = User.objects.all()
+    queryset = User.objects.all()
     permission_classes = (AllowAny,)
-    serializer_class   = UserSerializer
+    serializer_class = UserSerializer
 
 
 class FlexLoginView(APIView):
@@ -22,7 +22,7 @@ class FlexLoginView(APIView):
 
     def post(self, request):
         identifier = request.data.get('username', '').strip()
-        password   = request.data.get('password', '').strip()
+        password = request.data.get('password', '').strip()
 
         if not identifier or not password:
             return Response(
@@ -61,13 +61,13 @@ class FlexLoginView(APIView):
 
         refresh = RefreshToken.for_user(user)
         refresh['username'] = user.username
-        refresh['email']    = user.email
-        refresh['role']     = (
+        refresh['email'] = user.email
+        refresh['role'] = (
             'manager' if user.groups.filter(name='Manager').exists() else 'staff'
         )
 
         return Response({
-            'access':  str(refresh.access_token),
+            'access': str(refresh.access_token),
             'refresh': str(refresh),
         })
 
@@ -100,27 +100,36 @@ class ForgotPasswordView(APIView):
         otp = PasswordResetOTP.generate_otp()
         PasswordResetOTP.objects.create(user=user, otp=otp)
 
-        # Send via Brevo SMTP
+        # --- INTEGRATED BREVO API LOGIC ---
+        subject = 'CoreInventory — Your Password Reset Code'
+        html_content = f'''
+            <div style="font-family: sans-serif; padding: 20px; color: #333;">
+                <h2 style="color: #2d89ef;">Password Reset Request</h2>
+                <p>Hi {user.first_name or user.username},</p>
+                <p>You requested a password reset for your CoreInventory account. Use the code below to proceed:</p>
+                <div style="background: #f4f4f4; padding: 15px; font-size: 1.5em; text-align: center; letter-spacing: 5px; font-weight: bold; border-radius: 5px;">
+                    {otp}
+                </div>
+                <p>This code <strong>expires in 10 minutes</strong>.</p>
+                <p>If you did not request this, please ignore this email.</p>
+                <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+                <p style="font-size: 0.8em; color: #888;">— The CoreInventory Team</p>
+            </div>
+        '''
+
         try:
-            send_mail(
-                subject='CoreInventory — Your Password Reset Code',
-                message=f'''Hi {user.first_name or user.username},
-
-Your password reset code is:
-
-{otp}
-
-This code expires in 10 minutes.
-If you did not request this, please ignore this email.
-
-— CoreInventory Team''',
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[user.email],
-                fail_silently=False,
+            # Using your utility function instead of send_mail
+            send_brevo_email(
+                subject=subject,
+                html_content=html_content,
+                to_email=user.email,
+                to_name=user.username
             )
-        except Exception:
+        except Exception as e:
+            # Log the error to your terminal for debugging
+            print(f"Brevo API Error: {e}")
             return Response(
-                {'detail': 'Failed to send email. Please try again.'},
+                {'detail': 'Failed to send reset code. Please try again later.'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
@@ -135,7 +144,7 @@ class VerifyResetCodeView(APIView):
 
     def post(self, request):
         email = request.data.get('email', '').strip()
-        code  = request.data.get('code',  '').strip()
+        code = request.data.get('code', '').strip()
 
         if not email or not code:
             return Response(
@@ -181,7 +190,7 @@ class ResetPasswordView(APIView):
     permission_classes = (AllowAny,)
 
     def post(self, request):
-        token    = request.data.get('token',    '').strip()
+        token = request.data.get('token', '').strip()
         password = request.data.get('password', '').strip()
 
         if not token or not password:

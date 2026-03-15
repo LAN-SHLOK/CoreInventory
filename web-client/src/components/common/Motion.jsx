@@ -48,14 +48,13 @@ export const CustomDropdown = ({ icon, value, setter, options, placeholder, full
               </div>
               <div className="space-y-0.5 max-h-[300px] overflow-y-auto custom-scrollbar">
                 {options.map(opt => (
-                  <motion.div 
+                  <div 
                     key={opt.id}
-                    whileHover={{ x: 4 }}
                     onClick={() => { setter(opt.id); setIsOpen(false) }}
-                    className={`px-4 py-2.5 rounded-xl text-xs font-semibold cursor-pointer transition-all flex items-center justify-between ${
+                    className={`px-4 py-2.5 rounded-xl text-xs font-semibold cursor-pointer flex items-center justify-between border border-transparent transition-all hover:translate-x-1 duration-150 ${
                       (value === opt.id || Number(value) === opt.id || String(value) === String(opt.id))
-                        ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' 
-                        : 'theme-text hover:theme-bg-active hover:theme-text-secondary border border-transparent'
+                        ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' 
+                        : 'theme-text hover:theme-bg-active hover:theme-text-secondary'
                     }`}
                   >
                     <span className="truncate pr-4">{opt.name}</span>

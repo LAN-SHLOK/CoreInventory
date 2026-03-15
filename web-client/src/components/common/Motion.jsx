@@ -109,7 +109,7 @@ export const SpringModal = ({ isOpen, onClose, title, subtitle, children, footer
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.9, y: 20 }}
         transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-        className="theme-bg-surface border theme-border rounded-2xl w-full max-w-lg shadow-2xl relative z-[101] overflow-hidden m-auto"
+        className="theme-bg-surface border theme-border rounded-2xl w-full max-w-lg shadow-2xl relative z-[101] m-auto"
       >
         <div className="flex items-center justify-between px-6 py-4 border-b theme-border">
           <div>

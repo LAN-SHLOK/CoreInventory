@@ -71,7 +71,10 @@ function NewTransferModal({ onClose, onCreated }) {
   })
 
   useEffect(() => {
-    Promise.all([productsAPI.getAll(), locationsAPI.getAll()])
+    Promise.all([
+      productsAPI.getAll({ page_size: 100 }), 
+      locationsAPI.getAll({ page_size: 100 })
+    ])
       .then(([p, l]) => {
         setProducts(p.data.results || p.data)
         setLocations(l.data.results || l.data)

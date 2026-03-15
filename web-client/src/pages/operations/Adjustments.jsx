@@ -60,8 +60,8 @@ function NewAdjustmentModal({ onClose, onCreated }) {
   })
 
   useEffect(() => {
-    productsAPI.getAll().then(p => setProducts(p.data.results || p.data))
-    api.get('/warehouses/').then(res => setLocations(res.data.results || res.data))
+    productsAPI.getAll({ page_size: 100 }).then(p => setProducts(p.data.results || p.data))
+    api.get('/warehouses/', { params: { page_size: 100 } }).then(res => setLocations(res.data.results || res.data))
   }, [])
 
   const set = (field, value) => setForm(f => ({ ...f, [field]: value }))
@@ -70,11 +70,15 @@ function NewAdjustmentModal({ onClose, onCreated }) {
     if (!form.product || form.quantity === '') 
       return setError('Product and Quantity are required')
 
+    const selectedLoc = locations.find(l => l.id === Number(form.location))
+    const locName = selectedLoc ? selectedLoc.name : 'General'
+    const typeLabel = form.type === 'SCRAP' ? 'Scrap' : 'Manual'
+    
     setSaving(true); setError('')
     try {
       await adjustmentsAPI.create(form.product, {
         physical_count: Number(form.quantity),
-        reference:      form.remarks || 'Inventory Adjustment',
+        reference:      `[${typeLabel}] ${locName} - ${form.remarks || 'Initial Adjustment'}`,
       })
       onCreated()
       onClose()

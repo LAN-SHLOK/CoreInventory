@@ -147,6 +147,7 @@ REST_FRAMEWORK = {
     # --- NEW ADDITIONS FOR PHASE 2 ---
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
+    'PAGE_SIZE_QUERY_PARAM': 'page_size',
 }
 
 # 3. Configure the JWT Tokens to last for 24 hours (so you don't get logged out during the hackathon)

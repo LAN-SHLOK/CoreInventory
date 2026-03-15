@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../../services/AuthContext'
 import { api } from '../../api'
@@ -82,6 +82,11 @@ function NewTransferModal({ onClose, onCreated }) {
   }, [])
 
   const set = (field, value) => setForm(f => ({ ...f, [field]: value }))
+
+  const destinationOptions = useMemo(() => 
+    locations.filter(l => l.id !== Number(form.source)).map(l => ({ id: l.id, name: l.name })),
+    [locations, form.source]
+  )
 
   const handleSubmit = async () => {
     if (!form.product || !form.quantity || !form.source || !form.destination) 
@@ -171,7 +176,7 @@ function NewTransferModal({ onClose, onCreated }) {
                   icon={<MapPin size={14} />}
                   value={form.destination}
                   setter={(v) => set('destination', v)}
-                  options={locations.filter(l => l.id !== Number(form.source)).map(l => ({ id: l.id, name: l.name }))}
+                  options={destinationOptions}
                   placeholder="Destination..."
                 />
               </div>

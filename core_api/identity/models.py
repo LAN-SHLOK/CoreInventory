@@ -3,6 +3,8 @@ import string
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from datetime import timedelta
 
 # --- Password Reset OTP ---
@@ -29,6 +31,32 @@ class PasswordResetOTP(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.otp}"
 
-# NOTE: I have removed Location, Product, and StockLedger from here.
-# They should stay in your 'stock_ledger/models.py' file to keep the 
-# project architecture clean as we discussed.
+
+class Profile(models.Model):
+    ROLE_CHOICES = (
+        ('admin',   'Admin'),
+        ('manager', 'Inventory Manager'),
+        ('staff',   'Warehouse Staff'),
+    )
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='staff')
+
+    def __str__(self):
+        return f"{self.user.username} ({self.role})"
+
+
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        # Default AdminID to 'admin' role
+        role = 'admin' if instance.username == 'AdminID' or instance.is_staff else 'staff'
+        Profile.objects.create(user=instance, role=role)
+
+@receiver(post_save, sender=User)
+def save_user_profile(sender, instance, **kwargs):
+    if hasattr(instance, 'profile'):
+        instance.profile.save()
+    else:
+        # Fallback if profile doesn't exist for some reason
+        role = 'admin' if instance.username == 'AdminID' or instance.is_staff else 'staff'
+        Profile.objects.create(user=instance, role=role)

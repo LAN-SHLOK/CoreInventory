@@ -90,8 +90,6 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
-
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
 
@@ -181,22 +179,14 @@ ALLOWED_HOSTS = ['*'] # Useful for hackathon network sharing
 
 
 
-# ── Brevo API Configuration (Solar Drishti Style) ─────
+# --- EMAIL CONFIGURATION (SMTP) ---
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = config('EMAIL_HOST')
+EMAIL_PORT = config('EMAIL_PORT', cast=int)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool)
 
-# We use the API key directly via decouple
-
+# Brevo API Key still available for specialized SDK use if needed
 BREVO_API_KEY = config('BREVO_API_KEY')
-
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
-
-
-
-# We set this to dummy because we will use a custom utility 
-
-# to send emails via the Brevo SDK instead of standard SMTP.
-
-EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'
-
-
-
-# ... (Keep the rest of your JWT and REST_FRAMEWORK settings) ... this should i replace to like from email_backend to password like instead use this

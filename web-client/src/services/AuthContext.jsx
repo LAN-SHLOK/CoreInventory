@@ -22,7 +22,8 @@ export function AuthProvider({ children }) {
           id:       payload.user_id,
           username: payload.username || 'User',
           email:    payload.email    || '',
-          role:     payload.role     || 'staff',
+          role:     (payload.role === 'user' ? 'staff' : payload.role) || 'staff',
+          isStaff:  payload.is_staff || false,
         })
       } catch {
         localStorage.clear()
@@ -40,7 +41,8 @@ export function AuthProvider({ children }) {
       id:       payload.user_id,
       username: payload.username || 'User',
       email:    payload.email    || '',
-      role:     payload.role     || 'staff',
+      role:     (payload.role === 'user' ? 'staff' : payload.role) || 'staff',
+      isStaff:  payload.is_staff || false,
     }
     setUser(me)
     return me

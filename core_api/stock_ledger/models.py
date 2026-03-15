@@ -47,6 +47,8 @@ class StockMovement(models.Model):
     
     STATUS_CHOICES = [
         ('DRAFT', 'Draft'),
+        ('READY', 'Ready'),
+        ('PACKED', 'Packed'),
         ('DONE', 'Done'),
         ('CANCELLED', 'Cancelled'),
     ]

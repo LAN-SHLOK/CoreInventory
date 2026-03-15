@@ -1,24 +1,24 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../../services/AuthContext'
-import api, { deliveriesAPI, productsAPI, locationsAPI } from '../../api'
+import { receiptsAPI, productsAPI, locationsAPI } from '../../api'
 import {
   Search, Plus, CheckCircle2, XCircle, ChevronLeft,
-  ChevronRight, AlertCircle, RefreshCw, Truck,
-  Calendar, User, Filter, ArrowUpDown, X,
-  MapPin, TrendingUp, ChevronDown, PackageOpen
+  ChevronRight, AlertCircle, RefreshCw, PackageOpen,
+  Calendar, User, Filter, ArrowUpDown, X, Truck,
+  MapPin, TrendingUp, ChevronDown
 } from 'lucide-react'
 import { SpringModal, CustomDropdown, StaggerContainer, StaggerItem } from '../../components/common/Motion'
 
 const STATUS_BADGE = {
   draft:     <span className="badge-draft"><span className="w-1.5 h-1.5 bg-gray-500 rounded-full" />Draft</span>,
-  packed:    <span className="badge-ready"><span className="w-1.5 h-1.5 bg-blue-400 rounded-full" />Packed</span>,
+  ready:     <span className="badge-ready"><span className="w-1.5 h-1.5 bg-blue-400 rounded-full" />Ready</span>,
   done:      <span className="badge-done"><span className="w-1.5 h-1.5 bg-emerald-400 rounded-full" />Done</span>,
   cancelled: <span className="badge-cancelled"><span className="w-1.5 h-1.5 bg-red-400 rounded-full" />Cancelled</span>,
 }
 
-// ── New Delivery Modal ────────────────────────────────
-function NewDeliveryModal({ onClose, onCreated }) {
+// ── New Receipt Modal ─────────────────────────────────
+function NewReceiptModal({ onClose, onCreated }) {
   const [products,  setProducts]  = useState([])
   const [locations, setLocations] = useState([])
   const [saving,    setSaving]    = useState(false)
@@ -27,12 +27,14 @@ function NewDeliveryModal({ onClose, onCreated }) {
   const [form, setForm] = useState({
     product:       '',
     quantity:      '',
-    source:        '',
+    destination:   '',
     contact:       '',
     schedule_date: '',
     remarks:       '',
     status:        'DRAFT',
   })
+
+  const [productSearch, setProductSearch] = useState('')
 
   useEffect(() => {
     Promise.all([
@@ -51,12 +53,12 @@ function NewDeliveryModal({ onClose, onCreated }) {
     if (!form.quantity) return setError('Please enter a quantity')
     setSaving(true); setError('')
     try {
-      // POST /api/movements/ — movement_type=DELIVERY added by deliveriesAPI.create
+      // POST /api/movements/ — movement_type=RECEIPT added by receiptsAPI.create
       // Staff users get 403 → api.js interceptor fires global 'access-denied' event
-      await deliveriesAPI.create({
+      await receiptsAPI.create({
         product:       Number(form.product),
         quantity:      Number(form.quantity),
-        source:        form.source        ? Number(form.source) : null,
+        destination:   form.destination   ? Number(form.destination) : null,
         contact:       form.contact       || null,
         schedule_date: form.schedule_date || null,
         remarks:       form.remarks       || null,
@@ -67,25 +69,24 @@ function NewDeliveryModal({ onClose, onCreated }) {
     } catch (e) {
       // 403 handled globally — only show other errors here
       if (e.response?.status !== 403) {
-        setError(e.response?.data?.detail || 'Failed to create delivery')
+        setError(e.response?.data?.detail || 'Failed to create receipt')
       }
     } finally {
       setSaving(false)
     }
   }
 
-  const [productSearch, setProductSearch] = useState('')
   return (
     <SpringModal
       isOpen={true}
       onClose={onClose}
-      title="New Delivery Order"
-      subtitle="Create outgoing shipment for customer"
+      title="New Stock Receipt"
+      subtitle="Register incoming product shipments"
       footer={(
         <>
           <button onClick={onClose} className="btn-ghost btn-sm">Cancel</button>
           <button onClick={handleSubmit} disabled={saving} className="btn-primary btn-sm min-w-[100px]">
-            {saving ? <RefreshCw size={12} className="animate-spin" /> : 'Create Order'}
+            {saving ? <RefreshCw size={12} className="animate-spin" /> : 'Create Receipt'}
           </button>
         </>
       )}
@@ -103,23 +104,23 @@ function NewDeliveryModal({ onClose, onCreated }) {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="col-span-2">
-            <label className="block text-xs theme-text-faint mb-1.5 font-bold uppercase tracking-wider">Customer / Destination <span className="text-red-400">*</span></label>
+            <label className="block text-xs theme-text-faint mb-1.5 font-bold uppercase tracking-wider">Supplier / Source <span className="text-red-400">*</span></label>
             <div className="relative group">
               <User size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 theme-text-faint group-focus-within:text-emerald-500 transition-colors" />
               <input
-                className="input pr-4 pl-10 h-11 text-xs font-semibold" placeholder="e.g. Acme Corp"
+                className="input pr-4 pl-10 h-11 text-xs font-semibold" placeholder="e.g. Global Tech Solutions"
                 value={form.contact} onChange={(e) => set('contact', e.target.value)}
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs theme-text-faint mb-1.5 font-bold uppercase tracking-wider">Dispatch Warehouse <span className="text-red-400">*</span></label>
+            <label className="block text-xs theme-text-faint mb-1.5 font-bold uppercase tracking-wider">Warehouse <span className="text-red-400">*</span></label>
             <CustomDropdown 
               fullWidth
               icon={<MapPin size={16} />}
-              value={form.source}
-              setter={(v) => set('source', v)}
+              value={form.destination}
+              setter={(v) => set('destination', v)}
               options={locations.map(l => ({ id: l.id, name: l.name }))}
               placeholder="Select warehouse..."
             />
@@ -133,9 +134,9 @@ function NewDeliveryModal({ onClose, onCreated }) {
               value={form.status}
               setter={(v) => set('status', v)}
               options={[
-                { id: 'DRAFT',  name: 'Draft' },
-                { id: 'PACKED', name: 'Packed' },
-                { id: 'DONE',   name: 'Done (Direct Dispatch)' }
+                { id: 'DRAFT', name: 'Draft' },
+                { id: 'READY', name: 'Ready' },
+                { id: 'DONE',  name: 'Done (Instant Update)' }
               ]}
               placeholder="Select status..."
             />
@@ -143,7 +144,7 @@ function NewDeliveryModal({ onClose, onCreated }) {
         </div>
 
         <div className="pt-4 border-t theme-border">
-          <label className="block text-xs theme-text-faint mb-3 font-bold uppercase tracking-wider">Line Item</label>
+          <label className="block text-xs theme-text-faint mb-3 font-bold uppercase tracking-wider">Line Items</label>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="col-span-2">
               <CustomDropdown 
@@ -155,9 +156,13 @@ function NewDeliveryModal({ onClose, onCreated }) {
                 placeholder="Select product..."
               />
             </div>
-            <div className="col-span-2">
+            <div>
               <label className="block text-xs theme-text-faint mb-1.5 font-bold uppercase tracking-wider">Quantity</label>
               <input type="number" className="input h-11 text-xs font-semibold" value={form.quantity} onChange={(e) => set('quantity', e.target.value)} />
+            </div>
+            <div>
+              <label className="block text-xs theme-text-faint mb-1.5 font-bold uppercase tracking-wider">Unit Cost</label>
+              <input type="number" className="input h-11 text-xs font-semibold" value={form.unit_cost} onChange={(e) => set('unit_cost', e.target.value)} />
             </div>
           </div>
         </div>
@@ -166,32 +171,28 @@ function NewDeliveryModal({ onClose, onCreated }) {
   )
 }
 
-// ── Delivery detail view ──────────────────────────────
-function DeliveryDetail({ delivery, onBack, onRefresh }) {
+// ── Receipt detail view ───────────────────────────────
+function ReceiptDetail({ receipt, onBack, onRefresh }) {
   const [loading, setLoading] = useState(false)
 
   const act = async (fn, label) => {
-    if (!window.confirm(`${label} this delivery?`)) return
+    if (!window.confirm(`${label} this receipt?`)) return
     setLoading(true)
-    try   { await fn(delivery.id); onRefresh() }
+    try   { await fn(receipt.id); onRefresh() }
     catch (e) { alert(e.response?.data?.detail || `${label} failed`) }
     finally   { setLoading(false) }
   }
 
-  const canPack = delivery.status === 'draft'
-  const canValidate = delivery.status === 'packed' || delivery.status === 'draft'
-  const canCancel = delivery.status === 'draft' || delivery.status === 'packed'
-
-  const packDelivery = () => act((id) => api.patch(`/movements/${id}/`, { status: 'PACKED' }), 'Pack')
+  const canAct = receipt.status === 'draft'
 
   return (
     <div className="page-container animate-fade-in">
       <div className="flex items-center gap-3 mb-6">
         <button onClick={onBack} className="btn-ghost btn-sm"><ChevronLeft size={14} /> Back</button>
         <span className="text-gray-700">/</span>
-        <span className="text-sm text-gray-400">Deliveries</span>
+        <span className="text-sm text-gray-400">Receipts</span>
         <span className="text-gray-700">/</span>
-        <span className="text-sm text-gray-300 mono">{delivery.reference}</span>
+        <span className="text-sm text-gray-300 mono">{receipt.reference}</span>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
@@ -200,24 +201,17 @@ function DeliveryDetail({ delivery, onBack, onRefresh }) {
             <div className="flex items-start justify-between mb-5">
               <div>
                 <div className="flex items-center gap-2.5 mb-1.5">
-                  <h2 className="text-lg font-semibold theme-text mono">{delivery.reference}</h2>
-                  {STATUS_BADGE[delivery.status] || <span className="badge-draft">{delivery.status}</span>}
+                  <h2 className="text-lg font-semibold theme-text mono">{receipt.reference}</h2>
+                  {STATUS_BADGE[receipt.status] || <span className="badge-draft">{receipt.status}</span>}
                 </div>
-                <p className="text-sm theme-text-muted">Delivery #{delivery.id}</p>
+                <p className="text-sm theme-text-muted">Receipt #{receipt.id}</p>
               </div>
-              {canCancel && (
+              {canAct && (
                 <div className="flex gap-2">
-                  {canPack && (
-                    <button onClick={packDelivery} disabled={loading} className="btn-secondary btn-sm">
-                      <Plus size={13} /> Pack
-                    </button>
-                  )}
-                  {canValidate && (
-                    <button onClick={() => act(deliveriesAPI.validate, 'Validate')} disabled={loading} className="btn-primary btn-sm">
-                      <CheckCircle2 size={13} /> Validate
-                    </button>
-                  )}
-                  <button onClick={() => act(deliveriesAPI.cancel, 'Cancel')} disabled={loading} className="btn-danger btn-sm">
+                  <button onClick={() => act(receiptsAPI.validate, 'Validate')} disabled={loading} className="btn-primary btn-sm">
+                    <CheckCircle2 size={13} /> Validate
+                  </button>
+                  <button onClick={() => act(receiptsAPI.cancel, 'Cancel')} disabled={loading} className="btn-danger btn-sm">
                     <XCircle size={13} /> Cancel
                   </button>
                 </div>
@@ -225,10 +219,10 @@ function DeliveryDetail({ delivery, onBack, onRefresh }) {
             </div>
             <div className="grid grid-cols-2 gap-x-6">
               {[
-                { label: 'Customer / Contact', value: delivery.contact,       icon: User     },
-                { label: 'Scheduled Date',     value: delivery.schedule_date, icon: Calendar },
-                { label: 'From Location',      value: delivery.source_warehouse || delivery.source_name, icon: null },
-                { label: 'To Location',        value: delivery.dest_warehouse   || delivery.dest_name,   icon: null },
+                { label: 'Vendor / Contact', value: receipt.contact,       icon: User     },
+                { label: 'Scheduled Date',   value: receipt.schedule_date, icon: Calendar },
+                { label: 'From Location',    value: receipt.source_warehouse || receipt.source_name, icon: null },
+                { label: 'To Location',      value: receipt.dest_warehouse   || receipt.dest_name,   icon: null },
               ].map(({ label, value, icon: Icon }) => (
                 <div key={label} className="flex items-start gap-3 py-3 border-b theme-border last:border-0">
                   {Icon && <Icon size={13} className="theme-text-faint mt-0.5 flex-shrink-0" />}
@@ -239,10 +233,10 @@ function DeliveryDetail({ delivery, onBack, onRefresh }) {
                 </div>
               ))}
             </div>
-            {delivery.remarks && (
+            {receipt.remarks && (
               <div className="mt-4 p-3 theme-bg-hover rounded-lg border theme-border">
                 <p className="text-xs theme-text-faint mb-1">Notes / Remarks</p>
-                <p className="text-sm theme-text-secondary">{delivery.remarks}</p>
+                <p className="text-sm theme-text-secondary">{receipt.remarks}</p>
               </div>
             )}
           </div>
@@ -260,9 +254,9 @@ function DeliveryDetail({ delivery, onBack, onRefresh }) {
                 </tr>
               </thead>
               <tbody>
-                {(delivery.lines || []).length === 0 ? (
+                {(receipt.lines || []).length === 0 ? (
                   <tr><td colSpan={3} className="text-center py-8 text-sm theme-text-muted">No product lines</td></tr>
-                ) : delivery.lines.map((l, i) => (
+                ) : receipt.lines.map((l, i) => (
                   <tr key={i} className="border-b theme-border last:border-0">
                     <td className="table-cell theme-text-secondary">{l.product_name}</td>
                     <td className="table-cell mono text-xs theme-text-faint">{l.product_sku || '—'}</td>
@@ -276,9 +270,9 @@ function DeliveryDetail({ delivery, onBack, onRefresh }) {
 
         <div className="card p-5 h-fit">
           <h3 className="text-sm font-semibold theme-text mb-4">Status</h3>
-          {['Draft', 'Packed', 'Done'].map((s, i) => {
-            const order = ['draft', 'packed', 'done']
-            const curr  = order.indexOf(delivery.status)
+          {['Draft', 'Done'].map((s, i) => {
+            const order = ['draft', 'done']
+            const curr  = order.indexOf(receipt.status)
             const isDone = i < curr, isActive = i === curr
             return (
               <div key={s} className="flex items-center gap-3 mb-3 last:mb-0">
@@ -291,7 +285,7 @@ function DeliveryDetail({ delivery, onBack, onRefresh }) {
               </div>
             )
           })}
-          {delivery.status === 'cancelled' && (
+          {receipt.status === 'cancelled' && (
             <div className="mt-3 flex items-center gap-3">
               <div className="w-6 h-6 rounded-full bg-red-500/20 border border-red-500 flex items-center justify-center text-xs text-red-400">✕</div>
               <span className="text-sm text-red-400 font-medium">Cancelled</span>
@@ -303,61 +297,61 @@ function DeliveryDetail({ delivery, onBack, onRefresh }) {
   )
 }
 
-// ── Deliveries list page ──────────────────────────────
-export default function Deliveries() {
+// ── Receipts list page ────────────────────────────────
+export default function Receipts() {
   const { user } = useAuth()
   const isAdmin = user?.username === 'AdminID' || user?.role === 'admin' || user?.isStaff
 
-  const [deliveries, setDeliveries] = useState([])
-  const [search, setSearch]         = useState('')
-  const [statusFilter, setStatus]   = useState('')
-  const [loading, setLoading]       = useState(true)
-  const [error, setError]           = useState('')
-  const [selectedDelivery, setSelectedDelivery]     = useState(null) // Renamed from 'selected'
-  const [showModal, setShowModal]   = useState(false)
-  const [nextUrl, setNextUrl]       = useState(null)
-  const [prevUrl, setPrevUrl]       = useState(null)
-  const [count, setCount]           = useState(0)
-  const [page, setPage]             = useState(1)
+  const [receipts, setReceipts]   = useState([])
+  const [search, setSearch]       = useState('')
+  const [statusFilter, setStatus] = useState('')
+  const [loading, setLoading]     = useState(true)
+  const [error, setError]         = useState('')
+  const [selectedReceipt, setSelectedReceipt]   = useState(null)
+  const [showModal, setShowModal] = useState(false)
+  const [nextUrl, setNextUrl]     = useState(null)
+  const [prevUrl, setPrevUrl]     = useState(null)
+  const [count, setCount]         = useState(0)
+  const [page, setPage]           = useState(1)
 
-  const fetchDeliveries = async (pageNum = 1) => {
+  const fetchReceipts = async (pageNum = 1) => {
     setLoading(true); setError('')
     try {
-      const { data } = await deliveriesAPI.getAll({
+      const { data } = await receiptsAPI.getAll({
         ...(search       ? { search }               : {}),
         ...(statusFilter ? { status: statusFilter } : {}),
         page: pageNum,
       })
-      setDeliveries(data.results || data)
-      setNextUrl(data.next       || null)
-      setPrevUrl(data.previous   || null)
-      setCount(data.count        || 0)
+      setReceipts(data.results || data)
+      setNextUrl(data.next     || null)
+      setPrevUrl(data.previous || null)
+      setCount(data.count      || 0)
       setPage(pageNum)
-    } catch { setError('Failed to load deliveries') }
+    } catch { setError('Failed to load receipts') }
     finally   { setLoading(false) }
   }
 
-  useEffect(() => { fetchDeliveries(1) }, [])
+  useEffect(() => { fetchReceipts(1) }, [])
 
   const openDetail = async (id) => {
-    try { const { data } = await deliveriesAPI.getOne(id); setSelectedDelivery(data) }
-    catch { alert('Could not load delivery') }
+    try { const { data } = await receiptsAPI.getOne(id); setSelectedReceipt(data) }
+    catch { alert('Could not load receipt') }
   }
 
   const refreshDetail = async () => {
-    if (!selectedDelivery) return
-    try { const { data } = await deliveriesAPI.getOne(selectedDelivery.id); setSelectedDelivery(data); fetchDeliveries(page) }
+    if (!selectedReceipt) return
+    try { const { data } = await receiptsAPI.getOne(selectedReceipt.id); setSelectedReceipt(data); fetchReceipts(page) }
     catch {}
   }
 
   return (
     <div className="page-container">
       <AnimatePresence mode="wait">
-        {selectedDelivery ? (
-          <DeliveryDetail 
+        {selectedReceipt ? (
+          <ReceiptDetail 
             key="detail"
-            delivery={selectedDelivery} 
-            onBack={() => { setSelectedDelivery(null); fetchDeliveries(page) }} 
+            receipt={selectedReceipt} 
+            onBack={() => { setSelectedReceipt(null); fetchReceipts(page) }} 
             onRefresh={refreshDetail}
             isAdmin={isAdmin}
           />
@@ -370,13 +364,13 @@ export default function Deliveries() {
           >
             <div className="page-header flex-wrap gap-4">
               <div>
-                <h1 className="page-title">Delivery Orders</h1>
-                <p className="page-subtitle">Outgoing shipments & sales · {count} total</p>
+                <h1 className="page-title">Stock Receipts</h1>
+                <p className="page-subtitle">Incoming shipments & purchases · {count} total</p>
               </div>
               <div className="flex items-center gap-2">
-                <button onClick={() => fetchDeliveries(page)} className="btn-secondary btn-sm"><RefreshCw size={12} className={loading ? 'animate-spin' : ''} /></button>
+                <button onClick={() => fetchReceipts(page)} className="btn-secondary btn-sm"><RefreshCw size={12} className={loading ? 'animate-spin' : ''} /></button>
                 {isAdmin && (
-                  <button onClick={() => setShowModal(true)} className="btn-primary btn-sm"><Plus size={13} /> New Order</button>
+                  <button onClick={() => setShowModal(true)} className="btn-primary btn-sm"><Plus size={13} /> New Receipt</button>
                 )}
               </div>
             </div>
@@ -384,23 +378,23 @@ export default function Deliveries() {
             <div className="flex gap-2 mb-6 flex-wrap">
               <div className="relative flex-1 min-w-[200px] max-w-md">
                 <Search size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 theme-text-faint" />
-                <input className="input pl-9" placeholder="Search by reference or customer..."
+                <input className="input pl-9" placeholder="Search by reference or supplier..."
                   value={search} onChange={(e) => setSearch(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && fetchDeliveries(1)} />
+                  onKeyDown={(e) => e.key === 'Enter' && fetchReceipts(1)} />
               </div>
               <CustomDropdown 
                 icon={<TrendingUp size={14} />}
                 value={statusFilter} 
-                setter={(v) => { setStatus(v); fetchDeliveries(1) }} 
+                setter={(v) => { setStatus(v); fetchReceipts(1) }} 
                 options={[
-                  { id: 'DRAFT',     name: 'Draft' },
-                  { id: 'PACKED',    name: 'Packed' },
-                  { id: 'DONE',      name: 'Done' },
+                  { id: 'DRAFT', name: 'Draft' },
+                  { id: 'READY', name: 'Ready' },
+                  { id: 'DONE', name: 'Done' },
                   { id: 'CANCELLED', name: 'Cancelled' }
                 ]} 
                 placeholder="All Status" 
               />
-              <button onClick={() => fetchDeliveries(1)} className="btn-secondary btn-sm h-11 px-4"><Filter size={12} /> Apply</button>
+              <button onClick={() => fetchReceipts(1)} className="btn-secondary btn-sm h-11 px-4"><Filter size={12} /> Apply</button>
             </div>
 
             {error && <div className="flex items-center gap-2.5 bg-red-500/5 border border-red-500/15 text-red-400 text-sm rounded-xl px-4 py-3 mb-5"><AlertCircle size={13} /> {error}</div>}
@@ -410,7 +404,7 @@ export default function Deliveries() {
                 <thead>
                   <tr className="border-b theme-border-subtle">
                     <th className="table-head">Reference</th>
-                    <th className="table-head">Customer</th>
+                    <th className="table-head">Supplier</th>
                     <th className="table-head">Warehouse</th>
                     <th className="table-head">Status</th>
                   </tr>
@@ -418,19 +412,19 @@ export default function Deliveries() {
                 <tbody className="divide-y theme-border-subtle">
                   {loading ? (
                     <tr><td colSpan={4}><div className="flex items-center justify-center py-16 gap-2 theme-text-muted text-sm"><RefreshCw size={14} className="animate-spin" /> Loading...</div></td></tr>
-                  ) : deliveries.length === 0 ? (
-                    <tr><td colSpan={4}><div className="text-center py-16"><Truck size={32} className="theme-bg-active theme-text-faint mx-auto mb-3" /><p className="text-sm theme-text-muted">No delivery orders found</p></div></td></tr>
-                  ) : deliveries.map((d) => (
+                  ) : receipts.length === 0 ? (
+                    <tr><td colSpan={4}><div className="text-center py-16"><PackageOpen size={32} className="theme-bg-active theme-text-faint mx-auto mb-3" /><p className="text-sm theme-text-muted">No receipts found</p></div></td></tr>
+                  ) : receipts.map((r) => (
                     <motion.tr 
-                      key={d.id} 
+                      key={r.id} 
                       whileHover={{ backgroundColor: 'rgba(16, 185, 129, 0.03)' }}
                       className="table-row cursor-pointer" 
-                      onClick={() => openDetail(d.id)}
+                      onClick={() => openDetail(r.id)}
                     >
-                      <td className="table-cell font-medium text-blue-500 mono">{d.reference}</td>
-                      <td className="table-cell theme-text-secondary">{d.contact || '—'}</td>
-                      <td className="table-cell theme-text-faint text-xs">{d.source_warehouse || d.source_name || '—'}</td>
-                      <td className="table-cell">{STATUS_BADGE[d.status.toLowerCase()] || d.status}</td>
+                      <td className="table-cell font-medium text-blue-500 mono">{r.reference}</td>
+                      <td className="table-cell theme-text-secondary">{r.contact || '—'}</td>
+                      <td className="table-cell theme-text-faint text-xs">{r.dest_warehouse || r.dest_name || '—'}</td>
+                      <td className="table-cell">{STATUS_BADGE[r.status.toLowerCase()] || r.status}</td>
                     </motion.tr>
                   ))}
                 </tbody>
@@ -441,8 +435,8 @@ export default function Deliveries() {
               <div className="flex items-center justify-between mt-4 px-1">
                 <p className="text-xs theme-text-faint">Page {page} · {count} total</p>
                 <div className="flex gap-2">
-                  <button onClick={() => fetchDeliveries(page - 1)} disabled={!prevUrl} className="btn-secondary btn-sm disabled:opacity-30 disabled:cursor-not-allowed"><ChevronLeft size={13} /> Previous</button>
-                  <button onClick={() => fetchDeliveries(page + 1)} disabled={!nextUrl} className="btn-secondary btn-sm disabled:opacity-30 disabled:cursor-not-allowed">Next <ChevronRight size={13} /></button>
+                  <button onClick={() => fetchReceipts(page - 1)} disabled={!prevUrl} className="btn-secondary btn-sm disabled:opacity-30 disabled:cursor-not-allowed"><ChevronLeft size={13} /> Previous</button>
+                  <button onClick={() => fetchReceipts(page + 1)} disabled={!nextUrl} className="btn-secondary btn-sm disabled:opacity-30 disabled:cursor-not-allowed">Next <ChevronRight size={13} /></button>
                 </div>
               </div>
             )}
@@ -452,9 +446,9 @@ export default function Deliveries() {
 
       <AnimatePresence>
         {showModal && (
-          <NewDeliveryModal 
+          <NewReceiptModal 
             onClose={() => setShowModal(false)} 
-            onCreated={() => { setShowModal(false); fetchDeliveries(1) }} 
+            onCreated={() => { setShowModal(false); fetchReceipts(1) }} 
           />
         )}
       </AnimatePresence>

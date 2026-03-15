@@ -20,4 +20,11 @@ def send_brevo_email(subject, html_content, to_email, to_name="User"):
         subject=subject
     )
 
-    return api_instance.send_transac_email(send_email)
+    try:
+        api_response = api_instance.send_transac_email(send_email)
+        print(f"Brevo API Success: {api_response}")
+        return api_response
+    except ApiException as e:
+        print(f"Brevo API Exception: {e}")
+        # Re-raise to let the view handle it if needed, or return None
+        raise e

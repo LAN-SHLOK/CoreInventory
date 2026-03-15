@@ -37,28 +37,28 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0c10] flex bg-grid">
+    <div className="min-h-screen theme-bg-body flex bg-grid">
 
       {/* Left branding panel */}
-      <div className="hidden lg:flex flex-col w-[480px] flex-shrink-0 bg-[#0d0f14] border-r border-[#1a1d24] p-12 relative overflow-hidden">
+      <div className="hidden lg:flex flex-col w-[480px] flex-shrink-0 theme-bg-surface border-r theme-border p-12 relative overflow-hidden">
         <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
 
         <div className="flex items-center gap-3 mb-auto">
           <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-            <Boxes size={20} className="text-emerald-400" />
+            <Boxes size={20} className="text-emerald-500" />
           </div>
           <div>
-            <p className="text-base font-semibold text-white">CoreInventory</p>
-            <p className="text-xs text-gray-600">Warehouse Management System</p>
+            <p className="text-base font-semibold theme-text">CoreInventory</p>
+            <p className="text-xs theme-text-muted">Warehouse Management System</p>
           </div>
         </div>
 
         <div className="mb-auto">
-          <h2 className="text-3xl font-bold text-white mb-4 leading-tight">
+          <h2 className="text-3xl font-bold theme-text mb-4 leading-tight">
             Your warehouse,<br />
-            <span className="text-emerald-400">under control.</span>
+            <span className="text-emerald-500">under control.</span>
           </h2>
-          <p className="text-gray-500 text-sm leading-relaxed">
+          <p className="theme-text-muted text-sm leading-relaxed">
             Track stock, manage receipts and deliveries, and monitor
             every movement across your warehouse in real time.
           </p>
@@ -70,9 +70,9 @@ export default function Login() {
             { label: 'Real-time Sync', val: '24/7'  },
             { label: 'Uptime',        val: '99.9%'  },
           ].map(({ label, val }) => (
-            <div key={label} className="bg-[#0a0c10] border border-[#1e2028] rounded-xl p-3">
-              <p className="text-lg font-bold text-emerald-400">{val}</p>
-              <p className="text-[10px] text-gray-600 mt-0.5">{label}</p>
+            <div key={label} className="theme-bg-body border theme-border rounded-xl p-3">
+              <p className="text-lg font-bold text-emerald-500">{val}</p>
+              <p className="text-[10px] theme-text-muted mt-0.5">{label}</p>
             </div>
           ))}
         </div>
@@ -87,16 +87,16 @@ export default function Login() {
             <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
               <Boxes size={17} className="text-emerald-400" />
             </div>
-            <p className="text-base font-semibold text-white">CoreInventory</p>
+            <p className="text-base font-semibold theme-text">CoreInventory</p>
           </div>
 
           <div className="mb-8">
-            <h1 className="text-2xl font-bold text-white mb-1.5">Sign in</h1>
-            <p className="text-sm text-gray-500">
+            <h1 className="text-2xl font-bold theme-text mb-1.5">Sign in</h1>
+            <p className="text-sm theme-text-muted">
               Don't have an account?{' '}
               <Link
                 to="/register"
-                className="text-emerald-400 hover:text-emerald-300 transition-colors font-medium"
+                className="text-emerald-500 hover:text-emerald-400 transition-colors font-medium"
               >
                 Create one
               </Link>
@@ -114,11 +114,11 @@ export default function Login() {
 
             {/* Username or Email */}
             <div>
-              <label className="block text-xs font-medium text-gray-400 mb-1.5">
+              <label className="block text-xs font-medium theme-text-muted mb-1.5">
                 Username or Email
               </label>
               <div className="relative">
-                <User size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-600" />
+                <User size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 theme-text-faint" />
                 <input
                   type="text"
                   className="input pl-9"
@@ -133,11 +133,11 @@ export default function Login() {
 
             {/* Password */}
             <div>
-              <label className="block text-xs font-medium text-gray-400 mb-1.5">
+              <label className="block text-xs font-medium theme-text-muted mb-1.5">
                 Password
               </label>
               <div className="relative">
-                <Lock size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-600" />
+                <Lock size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 theme-text-faint" />
                 <input
                   type={showPass ? 'text' : 'password'}
                   className="input pl-9 pr-10"
@@ -150,7 +150,7 @@ export default function Login() {
                 <button
                   type="button"
                   onClick={() => setShowPass(v => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-400 transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 theme-text-faint hover:theme-text transition-colors"
                 >
                   {showPass ? <EyeOff size={14} /> : <Eye size={14} />}
                 </button>
@@ -161,7 +161,7 @@ export default function Login() {
             <div className="flex justify-end">
               <Link
                 to="/forgot-password"
-                className="text-xs text-gray-500 hover:text-emerald-400 transition-colors"
+                className="text-xs theme-text-faint hover:theme-text-secondary transition-colors"
               >
                 Forgot password?
               </Link>
@@ -174,7 +174,7 @@ export default function Login() {
             >
               {loading ? (
                 <>
-                  <span className="w-4 h-4 border-2 border-gray-900 border-t-transparent rounded-full animate-spin" />
+                  <span className="w-4 h-4 border-2 border-theme-bg-active border-t-transparent rounded-full animate-spin" />
                   Signing in...
                 </>
               ) : (
@@ -186,7 +186,7 @@ export default function Login() {
             </button>
           </form>
 
-          <p className="text-center text-xs text-gray-700 mt-8">
+          <p className="text-center text-xs theme-text-faint mt-8">
             CoreInventory © {new Date().getFullYear()}
           </p>
         </div>

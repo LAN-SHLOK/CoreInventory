@@ -75,33 +75,29 @@ export const authAPI = {
 // GET /api/dashboard/kpis/ → { total_products, low_stock_alerts, total_movements }
 // GET /api/movements/      → paginated movements for recent activity
 export const dashboardAPI = {
-  getSummary: async () => {
-    const [kpis, movements] = await Promise.all([
-      api.get('/dashboard/kpis/'),
-      api.get('/movements/'),
-    ])
+  getSummary: async (params) => {
+    const { data: summary } = await api.get('/dashboard/summary/', { params })
+    const { data: movements } = await api.get('/movements/', { params })
 
-    const all = movements.data.results || movements.data  // ← pagination safe
+    const all = movements.results || movements
 
     return {
       data: {
-        // From /dashboard/kpis/
-        total_products:     kpis.data.total_products    ?? 0,
-        low_stock_alerts:   kpis.data.low_stock_alerts  ?? 0,
-        total_moves_today:  kpis.data.total_movements   ?? 0,
+        total_products:      summary.total_products,
+        low_stock_count:     summary.low_stock_count,
+        out_of_stock_count:  summary.out_of_stock_count,
+        total_moves_today:   summary.total_moves_today,
+        pending_receipts:    summary.pending_receipts,
+        pending_deliveries:  summary.pending_deliveries,
+        scheduled_transfers: summary.scheduled_transfers,
+        stock_health:        summary.stock_health,
+        categories:          summary.categories || [],
 
-        // Derived from movements list
-        pending_receipts:   all.filter(m =>
-          m.movement_type === 'RECEIPT'  && m.status === 'DRAFT').length,
-        pending_deliveries: all.filter(m =>
-          m.movement_type === 'DELIVERY' && m.status === 'DRAFT').length,
-
-        // Recent 5 for dashboard table
         recent_moves: all.slice(0, 5).map(m => ({
           reference: m.reference || `#${m.id}`,
-          type:      m.movement_type,          // RECEIPT / DELIVERY / TRANSFER
-          status:    m.status?.toLowerCase(),  // draft / done / cancelled
-          date:      m.schedule_date           // ← FIXED: was m.date
+          type:      m.movement_type,
+          status:    m.status?.toLowerCase(),
+          date:      m.schedule_date
             ? new Date(m.schedule_date).toLocaleDateString('en-IN')
             : '—',
         })),
@@ -133,6 +129,8 @@ export const productsAPI = {
   // Direct stock update
   updateStock: (id, currentStock) =>
     api.patch(`/products/${id}/`, { current_stock: currentStock }),
+
+  getCategories: () => api.get('/products/categories/'),
 }
 
 // ── Legacy alias (keeps stockAPI callers working) ─────
@@ -290,8 +288,12 @@ function mapMovement(m) {
     source:        m.source,                            // location ID (null for receipts)
     destination:   m.destination,                       // location ID (null for deliveries)
     // FIX 2: these were missing in old mapToReceipt/mapToDelivery
-    from_location: m.source_name   || '—',              // ← source_name from serializer
-    to_location:   m.dest_name     || '—',              // ← dest_name from serializer
+    from_location: m.source_name   || '—',
+    to_location:   m.dest_name     || '—',
+    source_name:   m.source_name,
+    dest_name:     m.dest_name,
+    source_warehouse: m.source_warehouse,
+    dest_warehouse:   m.dest_warehouse,
 
     // Vendor (receipts) or Customer (deliveries)
     contact:       m.contact       || '—',
@@ -320,4 +322,5 @@ function mapMovement(m) {
   }
 }
 
+export { api }
 export default api

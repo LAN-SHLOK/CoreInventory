@@ -14,35 +14,8 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.CreateModel(
-            name='Location',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=100)),
-                ('is_internal', models.BooleanField(default=True, help_text='False for Suppliers/Customers')),
-            ],
-        ),
-        migrations.CreateModel(
-            name='Product',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=200)),
-                ('sku', models.CharField(max_length=50, unique=True)),
-                ('category', models.CharField(max_length=100)),
-                ('unit_of_measure', models.CharField(help_text='e.g., kg, units, liters', max_length=20)),
-            ],
-        ),
-        migrations.CreateModel(
-            name='StockLedger',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('movement_type', models.CharField(choices=[('RECEIPT', 'Receipt'), ('DELIVERY', 'Delivery'), ('TRANSFER', 'Transfer'), ('ADJUSTMENT', 'Adjustment')], max_length=20)),
-                ('quantity', models.IntegerField(help_text='Positive number for the amount moved')),
-                ('timestamp', models.DateTimeField(auto_now_add=True)),
-                ('destination_location', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='incoming_stock', to='identity.location')),
-                ('performed_by', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL)),
-                ('product', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='movements', to='identity.product')),
-                ('source_location', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='outgoing_stock', to='identity.location')),
-            ],
-        ),
+        # CreateModel operations for Location, Product, StockLedger removed.
+        # These models were moved to the stock_ledger app.
+        # Migration already applied to DB — safe to leave empty.
     ]
+

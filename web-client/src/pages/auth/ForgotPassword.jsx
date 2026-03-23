@@ -78,28 +78,28 @@ export default function ForgotPassword() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0c10] flex bg-grid">
+    <div className="min-h-screen theme-bg-body flex bg-grid">
 
       {/* Left branding panel */}
-      <div className="hidden lg:flex flex-col w-[480px] flex-shrink-0 bg-[#0d0f14] border-r border-[#1a1d24] p-12 relative overflow-hidden">
+      <div className="hidden lg:flex flex-col w-[480px] flex-shrink-0 theme-bg-surface border-r theme-border p-12 relative overflow-hidden">
         <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
 
         <div className="flex items-center gap-3 mb-auto">
           <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-            <Boxes size={20} className="text-emerald-400" />
+            <Boxes size={20} className="text-emerald-500" />
           </div>
           <div>
-            <p className="text-base font-semibold text-white">CoreInventory</p>
-            <p className="text-xs text-gray-600">Warehouse Management System</p>
+            <p className="text-base font-semibold theme-text">CoreInventory</p>
+            <p className="text-xs theme-text-muted">Warehouse Management System</p>
           </div>
         </div>
 
         <div className="mb-auto">
-          <h2 className="text-3xl font-bold text-white mb-4 leading-tight">
+          <h2 className="text-3xl font-bold theme-text mb-4 leading-tight">
             Forgot your<br />
-            <span className="text-emerald-400">password?</span>
+            <span className="text-emerald-500">password?</span>
           </h2>
-          <p className="text-gray-500 text-sm leading-relaxed">
+          <p className="theme-text-muted text-sm leading-relaxed">
             No worries. Enter your email and we'll send you
             a code to reset your password securely.
           </p>
@@ -111,9 +111,9 @@ export default function ForgotPassword() {
             { label: 'Real-time Sync', val: '24/7'  },
             { label: 'Uptime',        val: '99.9%'  },
           ].map(({ label, val }) => (
-            <div key={label} className="bg-[#0a0c10] border border-[#1e2028] rounded-xl p-3">
-              <p className="text-lg font-bold text-emerald-400">{val}</p>
-              <p className="text-[10px] text-gray-600 mt-0.5">{label}</p>
+            <div key={label} className="theme-bg-body border theme-border rounded-xl p-3">
+              <p className="text-lg font-bold text-emerald-500">{val}</p>
+              <p className="text-[10px] theme-text-muted mt-0.5">{label}</p>
             </div>
           ))}
         </div>
@@ -128,15 +128,15 @@ export default function ForgotPassword() {
             <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
               <Boxes size={17} className="text-emerald-400" />
             </div>
-            <p className="text-base font-semibold text-white">CoreInventory</p>
+            <p className="text-base font-semibold theme-text">CoreInventory</p>
           </div>
 
           {/* ── STEP 1: Enter email ── */}
           {step === 'request' && (
             <>
               <div className="mb-8">
-                <h1 className="text-2xl font-bold text-white mb-1.5">Reset password</h1>
-                <p className="text-sm text-gray-500">
+                <h1 className="text-2xl font-bold theme-text mb-1.5">Reset password</h1>
+                <p className="text-sm theme-text-muted">
                   Enter your account email and we'll send a verification code.
                 </p>
               </div>
@@ -150,11 +150,11 @@ export default function ForgotPassword() {
 
               <form onSubmit={handleRequest} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-medium text-gray-400 mb-1.5">
+                  <label className="block text-xs font-medium theme-text-muted mb-1.5">
                     Email Address
                   </label>
                   <div className="relative">
-                    <Mail size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-600" />
+                    <Mail size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 theme-text-faint" />
                     <input
                       type="email"
                       className="input pl-9"
@@ -174,7 +174,7 @@ export default function ForgotPassword() {
                 >
                   {loading ? (
                     <>
-                      <span className="w-4 h-4 border-2 border-gray-900 border-t-transparent rounded-full animate-spin" />
+                      <span className="w-4 h-4 border-2 border-theme-bg-active border-t-transparent rounded-full animate-spin" />
                       Sending code...
                     </>
                   ) : (
@@ -198,10 +198,10 @@ export default function ForgotPassword() {
           {step === 'verify' && (
             <>
               <div className="mb-8">
-                <h1 className="text-2xl font-bold text-white mb-1.5">Check your email</h1>
-                <p className="text-sm text-gray-500">
+                <h1 className="text-2xl font-bold theme-text mb-1.5">Check your email</h1>
+                <p className="text-sm theme-text-muted">
                   We sent a 6-digit code to{' '}
-                  <span className="text-emerald-400 font-medium">{email}</span>
+                  <span className="text-emerald-500 font-medium">{email}</span>
                 </p>
               </div>
 
@@ -214,7 +214,7 @@ export default function ForgotPassword() {
 
               <form onSubmit={handleVerify} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-medium text-gray-400 mb-1.5">
+                  <label className="block text-xs font-medium theme-text-muted mb-1.5">
                     Verification Code
                   </label>
                   <input
@@ -235,7 +235,7 @@ export default function ForgotPassword() {
                 >
                   {loading ? (
                     <>
-                      <span className="w-4 h-4 border-2 border-gray-900 border-t-transparent rounded-full animate-spin" />
+                      <span className="w-4 h-4 border-2 border-theme-bg-active border-t-transparent rounded-full animate-spin" />
                       Verifying...
                     </>
                   ) : (
@@ -259,8 +259,8 @@ export default function ForgotPassword() {
           {step === 'reset' && (
             <>
               <div className="mb-8">
-                <h1 className="text-2xl font-bold text-white mb-1.5">Set new password</h1>
-                <p className="text-sm text-gray-500">
+                <h1 className="text-2xl font-bold theme-text mb-1.5">Set new password</h1>
+                <p className="text-sm theme-text-muted">
                   Choose a strong password for your account.
                 </p>
               </div>
@@ -274,7 +274,7 @@ export default function ForgotPassword() {
 
               <form onSubmit={handleReset} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-medium text-gray-400 mb-1.5">
+                  <label className="block text-xs font-medium theme-text-muted mb-1.5">
                     New Password
                   </label>
                   <input
@@ -288,7 +288,7 @@ export default function ForgotPassword() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-400 mb-1.5">
+                  <label className="block text-xs font-medium theme-text-muted mb-1.5">
                     Confirm Password
                   </label>
                   <input
@@ -309,7 +309,7 @@ export default function ForgotPassword() {
                 >
                   {loading ? (
                     <>
-                      <span className="w-4 h-4 border-2 border-gray-900 border-t-transparent rounded-full animate-spin" />
+                      <span className="w-4 h-4 border-2 border-theme-bg-active border-t-transparent rounded-full animate-spin" />
                       Resetting...
                     </>
                   ) : (
@@ -326,8 +326,8 @@ export default function ForgotPassword() {
               <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mx-auto mb-6">
                 <CheckCircle2 size={28} className="text-emerald-400" />
               </div>
-              <h1 className="text-2xl font-bold text-white mb-2">Password reset!</h1>
-              <p className="text-sm text-gray-500 mb-8">
+              <h1 className="text-2xl font-bold theme-text mb-2">Password reset!</h1>
+              <p className="text-sm theme-text-muted mb-8">
                 Your password has been updated successfully.
                 You can now sign in with your new password.
               </p>
@@ -340,7 +340,7 @@ export default function ForgotPassword() {
             </div>
           )}
 
-          <p className="text-center text-xs text-gray-700 mt-8">
+          <p className="text-center text-xs theme-text-faint mt-8">
             CoreInventory © {new Date().getFullYear()}
           </p>
         </div>

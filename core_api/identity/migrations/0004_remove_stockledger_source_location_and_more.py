@@ -10,34 +10,8 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='stockledger',
-            name='source_location',
-        ),
-        migrations.RemoveField(
-            model_name='stockledger',
-            name='destination_location',
-        ),
-        migrations.RemoveField(
-            model_name='stockledger',
-            name='product',
-        ),
-        migrations.RemoveField(
-            model_name='stockledger',
-            name='performed_by',
-        ),
-        migrations.AlterField(
-            model_name='passwordresetotp',
-            name='id',
-            field=models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID'),
-        ),
-        migrations.DeleteModel(
-            name='Location',
-        ),
-        migrations.DeleteModel(
-            name='Product',
-        ),
-        migrations.DeleteModel(
-            name='StockLedger',
-        ),
+        # Operations removed — these models (StockLedger, Location, Product)
+        # were moved to the stock_ledger app. The duplicate 0004 migrations
+        # caused a KeyError during state replay. Since already applied to DB,
+        # this is safe to leave empty.
     ]

@@ -53,6 +53,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware', # MUST BE AT THE VERY TOP
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Serve static files on Render
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -84,14 +85,14 @@ WSGI_APPLICATION = 'core_api.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
+import dj_database_url
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default=f'sqlite:///{BASE_DIR / "db.sqlite3"}',
+        conn_max_age=600,
+    )
 }
-
-
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
 
@@ -127,6 +128,11 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Default primary key field type
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # --- HACKATHON CONFIGURATIONS ---
 
@@ -141,6 +147,7 @@ REST_FRAMEWORK = {
     # --- NEW ADDITIONS FOR PHASE 2 ---
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
+    'PAGE_SIZE_QUERY_PARAM': 'page_size',
 }
 
 # 3. Configure the JWT Tokens to last for 24 hours (so you don't get logged out during the hackathon)
@@ -181,22 +188,17 @@ ALLOWED_HOSTS = ['*'] # Useful for hackathon network sharing
 
 
 
-# ── Brevo API Configuration (Solar Drishti Style) ─────
+# --- EMAIL CONFIGURATION (SMTP) ---
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = config('EMAIL_HOST')
+EMAIL_PORT = config('EMAIL_PORT', cast=int)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool)
 
-# We use the API key directly via decouple
-
+# Brevo API Key still available for specialized SDK use if needed
 BREVO_API_KEY = config('BREVO_API_KEY')
-
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
 
-
-
-# We set this to dummy because we will use a custom utility 
-
-# to send emails via the Brevo SDK instead of standard SMTP.
-
-EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'
-
-
-
-# ... (Keep the rest of your JWT and REST_FRAMEWORK settings) ... this should i replace to like from email_backend to password like instead use this
+# 7. Prevent Gunicorn Hang on SMTP timeouts
+EMAIL_TIMEOUT = 10

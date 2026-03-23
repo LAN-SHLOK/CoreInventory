@@ -61,3 +61,13 @@ Desktop.ini
 .idea/
 *.swp
 *.swo
+
+# Testing and Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+test_output.txt
+
+# Extras
+celerybeat-schedule
+celerybeat.pid

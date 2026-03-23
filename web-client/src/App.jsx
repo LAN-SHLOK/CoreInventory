@@ -1,16 +1,23 @@
 import { useState, useEffect } from 'react'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { motion, AnimatePresence } from 'framer-motion'
 import { AuthProvider, useAuth } from './services/AuthContext'
+import { ThemeProvider, useTheme } from './services/ThemeContext'
 import Sidebar from './components/Sidebar'
 import Login from './pages/auth/Login'
 import Register from './pages/auth/Register'
 import ForgotPassword from './pages/auth/ForgotPassword'
 import Dashboard from './pages/dashboard/Dashboard'
-import Receipts from './pages/operations/Reciepts'
+import Receipts from './pages/operations/Receipts'
 import Deliveries from './pages/operations/Deliveries'
 import MoveHistory from './pages/operations/MoveHistory'
 import Products from './pages/products/Products'
-import { ShieldX } from 'lucide-react'
+import Warehouses from './pages/operations/Warehouses'
+import Transfers from './pages/operations/Transfers'
+import Adjustments from './pages/operations/Adjustments'
+import Settings from './pages/settings/Settings'
+import Profile from './pages/settings/Profile'
+import { ShieldX, Menu, Boxes, Moon, Sun, Search } from 'lucide-react'
 
 // ── Access Denied Toast ───────────────────────────────
 // Listens for the global 'access-denied' event fired by api.js
@@ -50,48 +57,103 @@ function AccessDeniedToast() {
 // ── Loading Spinner ───────────────────────────────────
 function Spinner() {
   return (
-    <div className="flex h-screen items-center justify-center bg-[#0a0c10]">
+    <div className="flex h-screen items-center justify-center theme-bg-app">
       <div className="flex flex-col items-center gap-4">
         <div className="relative w-10 h-10">
           <div className="absolute inset-0 rounded-full border-2 border-emerald-500/20" />
           <div className="absolute inset-0 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin" />
         </div>
-        <p className="text-xs text-gray-600 tracking-wider uppercase">Loading</p>
+        <p className="text-xs theme-text-faint tracking-wider uppercase">Loading</p>
       </div>
     </div>
   )
 }
 
 // ── Routes ────────────────────────────────────────────
+// ── Page Transition Wrapper ──────────────────────────
+const PageWrapper = ({ children }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 10 }}
+    animate={{ opacity: 1, y: 0 }}
+    exit={{ opacity: 0, y: -10 }}
+    transition={{ duration: 0.25, ease: "easeOut" }}
+    className="h-full"
+  >
+    {children}
+  </motion.div>
+)
+
 function AppRoutes() {
   const { user, loading } = useAuth()
+  const { theme } = useTheme()
+  const location = useLocation()
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true)
 
-  if (loading) return <Spinner />
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center theme-bg-app">
+      <div className="w-12 h-12 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin" />
+    </div>
+  )
 
-  if (!user) {
-    return (
-      <Routes>
+  if (!user) return (
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
         <Route path="/login"           element={<Login />} />
         <Route path="/register"        element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="*"                element={<Navigate to="/login" replace />} />
       </Routes>
-    )
-  }
+    </AnimatePresence>
+  )
 
   return (
-    <div className="flex h-screen bg-[#0a0c10] text-gray-100 overflow-hidden">
-      <Sidebar />
-      <main className="flex-1 overflow-y-auto bg-grid">
-        <Routes>
-          <Route path="/"             element={<Dashboard />} />
-          <Route path="/receipts"     element={<Receipts />} />
-          <Route path="/deliveries"   element={<Deliveries />} />
-          <Route path="/move-history" element={<MoveHistory />} />
-          <Route path="/products"     element={<Products />} />
-          <Route path="*"             element={<Navigate to="/" replace />} />
-        </Routes>
-      </main>
+    <div className="flex min-h-screen theme-bg-app overflow-hidden">
+
+      <Sidebar 
+        isMobileOpen={sidebarOpen} 
+        onCloseMobile={() => setSidebarOpen(false)} 
+        isCollapsed={isSidebarCollapsed}
+        setIsCollapsed={setIsSidebarCollapsed}
+      />
+      
+      <div 
+        className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${isSidebarCollapsed ? 'lg:pl-20' : 'lg:pl-64'}`}
+      >
+        {/* Mobile Header */}
+        <header className="lg:hidden flex items-center justify-between px-5 py-3.5 border-b theme-border-subtle theme-bg-surface shadow-sm">
+          <div className="flex items-center gap-3">
+            <img src="/logo.svg" alt="Logo" className="w-8 h-8 rounded-lg logo-glow" />
+            <span className="text-base font-bold theme-text tracking-tight">CoreInventory</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button className="p-2 theme-text-faint hover:theme-text">
+              <Search size={20} />
+            </button>
+            <button onClick={() => setSidebarOpen(true)} className="p-2 theme-text-faint hover:theme-text">
+              <Menu size={20} />
+            </button>
+          </div>
+        </header>
+
+        <main className="flex-1 overflow-y-auto custom-scrollbar relative">
+          <AnimatePresence mode="wait">
+            <Routes location={location} key={location.pathname}>
+              <Route path="/"             element={<PageWrapper><Dashboard /></PageWrapper>} />
+              <Route path="/receipts"     element={<PageWrapper><Receipts /></PageWrapper>} />
+              <Route path="/deliveries"   element={<PageWrapper><Deliveries /></PageWrapper>} />
+              <Route path="/transfers"    element={<PageWrapper><Transfers /></PageWrapper>} />
+              <Route path="/adjustments"  element={<PageWrapper><Adjustments /></PageWrapper>} />
+              <Route path="/move-history" element={<PageWrapper><MoveHistory /></PageWrapper>} />
+              <Route path="/products"     element={<PageWrapper><Products /></PageWrapper>} />
+              <Route path="/warehouses"   element={<PageWrapper><Warehouses /></PageWrapper>} />
+              <Route path="/settings"     element={<PageWrapper><Settings /></PageWrapper>} />
+              <Route path="/profile"      element={<PageWrapper><Profile /></PageWrapper>} />
+              <Route path="*"             element={<Navigate to="/" replace />} />
+            </Routes>
+          </AnimatePresence>
+        </main>
+      </div>
     </div>
   )
 }
@@ -100,11 +162,12 @@ function AppRoutes() {
 export default function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        {/* Toast sits outside routes so it shows on every page */}
-        <AccessDeniedToast />
-        <AppRoutes />
-      </BrowserRouter>
+      <ThemeProvider>
+        <BrowserRouter>
+          <AccessDeniedToast />
+          <AppRoutes />
+        </BrowserRouter>
+      </ThemeProvider>
     </AuthProvider>
   )
 }

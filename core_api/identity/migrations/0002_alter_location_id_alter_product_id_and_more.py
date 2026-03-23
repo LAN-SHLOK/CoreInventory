@@ -10,25 +10,8 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AlterField(
-            model_name="location",
-            name="id",
-            field=models.AutoField(
-                auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
-            ),
-        ),
-        migrations.AlterField(
-            model_name="product",
-            name="id",
-            field=models.AutoField(
-                auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
-            ),
-        ),
-        migrations.AlterField(
-            model_name="stockledger",
-            name="id",
-            field=models.AutoField(
-                auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
-            ),
-        ),
+        # AlterField operations for location, product, stockledger removed.
+        # These models were moved to the stock_ledger app.
+        # Migration already applied to DB — safe to leave empty.
     ]
+

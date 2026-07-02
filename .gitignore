@@ -71,3 +71,9 @@ test_output.txt
 # Extras
 celerybeat-schedule
 celerybeat.pid
+
+# Temporary & Script Files
+data.json
+fix_*.py
+test_*.py
+git_*.txt

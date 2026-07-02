@@ -1,0 +1,5 @@
+2f8b1cb Fix merge conflict marker in migration file
+e631a03 Production-ready: whitenoise, dj-database-url, collectstatic for Render
+3598f03 Fix requirements.txt parse error
+34c761a Create requirements.txt
+8644744 Delete requirements.txt

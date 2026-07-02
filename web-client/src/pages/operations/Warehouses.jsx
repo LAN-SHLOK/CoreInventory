@@ -4,8 +4,8 @@ import { useAuth } from '../../services/AuthContext'
 import { warehouseAPI, locationsAPI } from '../../api'
 import { AnimatedCard, SpringModal, StaggerContainer, StaggerItem } from '../../components/common/Motion'
 import {
-  Search, Plus, MapPin, Building2, CheckCircle2,
-  AlertCircle, RefreshCw, Filter, ArrowUpDown, X, Edit2
+  Search, Plus, MapPin, Building2,
+  AlertCircle, RefreshCw, Edit2
 } from 'lucide-react'
 
 // ── New Location Modal ────────────────────────────────

@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { CustomDropdown } from '../../components/common/Motion'
 import { useAuth } from '../../services/AuthContext'
 import api, { dashboardAPI } from '../../api'
 import {
   PackageOpen, Truck, History, Boxes,
-  TrendingUp, TrendingDown, RefreshCw,
+  TrendingUp, RefreshCw,
   AlertCircle, ArrowRight, Clock, CheckCircle2,
-  ArrowRightLeft, Filter, ChevronDown
+  ArrowRightLeft, Filter
 } from 'lucide-react'
 
 function StatCard({ icon: Icon, label, value, sub, color, onClick, variants }) {
@@ -197,7 +197,7 @@ export default function Dashboard() {
     } finally { setLoading(false) }
   }
 
-  useEffect(() => { fetchData() }, [locationFilter, categoryFilter, typeFilter, statusFilter])
+    useEffect(() => { fetchData() }, [locationFilter, categoryFilter, typeFilter, statusFilter])
 
   const today = new Date().toLocaleDateString('en-IN', {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'

@@ -17,7 +17,7 @@ import Transfers from './pages/operations/Transfers'
 import Adjustments from './pages/operations/Adjustments'
 import Settings from './pages/settings/Settings'
 import Profile from './pages/settings/Profile'
-import { ShieldX, Menu, Boxes, Moon, Sun, Search } from 'lucide-react'
+import { ShieldX, Menu, Search } from 'lucide-react'
 
 // ── Access Denied Toast ───────────────────────────────
 // Listens for the global 'access-denied' event fired by api.js
@@ -54,20 +54,6 @@ function AccessDeniedToast() {
   )
 }
 
-// ── Loading Spinner ───────────────────────────────────
-function Spinner() {
-  return (
-    <div className="flex h-screen items-center justify-center theme-bg-app">
-      <div className="flex flex-col items-center gap-4">
-        <div className="relative w-10 h-10">
-          <div className="absolute inset-0 rounded-full border-2 border-emerald-500/20" />
-          <div className="absolute inset-0 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin" />
-        </div>
-        <p className="text-xs theme-text-faint tracking-wider uppercase">Loading</p>
-      </div>
-    </div>
-  )
-}
 
 // ── Routes ────────────────────────────────────────────
 // ── Page Transition Wrapper ──────────────────────────
@@ -85,7 +71,7 @@ const PageWrapper = ({ children }) => (
 
 function AppRoutes() {
   const { user, loading } = useAuth()
-  const { theme } = useTheme()
+  useTheme()
   const location = useLocation()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true)

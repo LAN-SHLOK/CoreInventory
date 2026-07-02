@@ -21,7 +21,7 @@ api.interceptors.response.use(
     const original = error.config
 
     // Auto-refresh on 401
-    if (error.response?.status === 401 && !original._retry) {
+    if (error.response?.status === 401 && !original._retry && !original.url.includes('/auth/login')) {
       original._retry = true
       try {
         const refresh = localStorage.getItem('refresh_token')

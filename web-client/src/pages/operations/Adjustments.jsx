@@ -4,10 +4,10 @@ import { useAuth } from '../../services/AuthContext'
 import { api } from '../../api'
 import { productsAPI } from '../../api'
 import {
-  Search, Plus, CheckCircle2, ChevronLeft,
-  ChevronRight, AlertCircle, RefreshCw, SlidersHorizontal,
-  Filter, ArrowUpDown, X, Hash, ShieldAlert,
-  PackageOpen, MapPin, TrendingUp, ChevronDown
+  Search, Plus, ChevronLeft,
+  ChevronRight, AlertCircle, RefreshCw,
+  Filter, Hash, ShieldAlert,
+  PackageOpen, MapPin, TrendingUp
 } from 'lucide-react'
 import { SpringModal, CustomDropdown } from '../../components/common/Motion'
 
@@ -206,7 +206,7 @@ export default function Adjustments() {
     finally   { setLoading(false) }
   }
 
-  useEffect(() => { fetchAdjustments(1) }, [])
+    useEffect(() => { fetchAdjustments(1) }, [])
 
   return (
     <div className="page-container animate-fade-in">

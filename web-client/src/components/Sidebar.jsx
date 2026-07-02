@@ -1,11 +1,11 @@
-import { useState } from 'react'
+import React from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../services/AuthContext'
 import { useTheme } from '../services/ThemeContext'
 import {
   LayoutDashboard, PackageOpen, Truck, History,
-  Boxes, LogOut, ChevronRight, Settings, 
+  Boxes, LogOut, Settings, 
   MapPin, ArrowRightLeft, SlidersHorizontal, User,
   PanelLeftClose, PanelLeftOpen, X,
   ExternalLink, ShieldCheck, Sun, Moon

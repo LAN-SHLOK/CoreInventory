@@ -5,9 +5,9 @@ import { api } from '../../api'
 import { productsAPI, locationsAPI } from '../../api'
 import {
   Search, Plus, CheckCircle2, XCircle, ChevronLeft,
-  ChevronRight, AlertCircle, RefreshCw, RefreshCcw, ArrowRightLeft,
-  Filter, ArrowUpDown, X, ArrowRight, Calendar, Hash,
-  PackageOpen, MapPin, TrendingUp, ChevronDown
+  ChevronRight, AlertCircle, RefreshCw, ArrowRightLeft,
+  Filter, Calendar, Hash,
+  PackageOpen, MapPin, TrendingUp
 } from 'lucide-react'
 import { SpringModal, CustomDropdown } from '../../components/common/Motion'
 
@@ -337,7 +337,7 @@ export default function Transfers() {
     finally   { setLoading(false) }
   }
 
-  useEffect(() => { fetchTransfers(1) }, [])
+    useEffect(() => { fetchTransfers(1) }, [])
 
   const openDetail = async (id) => {
     try { const { data } = await transfersAPI.getOne(id); setSelectedTransfer(data) }

@@ -12,8 +12,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 from pathlib import Path
-
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+from decouple import config  # pyright: ignore [missing-import]  
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
@@ -85,7 +84,7 @@ WSGI_APPLICATION = 'core_api.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-import dj_database_url
+import dj_database_url  # pyright: ignore [missing-import]  
 
 DATABASES = {
     'default': dj_database_url.config(
@@ -136,37 +135,36 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # --- HACKATHON CONFIGURATIONS ---
 
-# 1. Allow Shlok and Jyoti's React app (port 3000) to bypass security blocks
-CORS_ALLOW_ALL_ORIGINS = True 
+# 1. Allow specified frontend origins only
+CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='http://localhost:3000').split(',')
 
 # 2. Lock down Django REST Framework to require JWT Tokens
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle'
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '10/min',
+        'user': '100/min'
+    },
     # --- NEW ADDITIONS FOR PHASE 2 ---
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
     'PAGE_SIZE_QUERY_PARAM': 'page_size',
 }
 
-# 3. Configure the JWT Tokens to last for 24 hours (so you don't get logged out during the hackathon)
+# 3. Configure the JWT Tokens for short lifetimes to improve security
 from datetime import timedelta
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
-#from pathlib import Path
-
-from decouple import config # <-- Add this
-
-from datetime import timedelta
-
-
-
-# Build paths
-
-BASE_DIR = Path(__file__).resolve().parent.parent
+# Build paths (already defined at top of file)
 
 
 
@@ -176,11 +174,21 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = config('SECRET_KEY')
 
-DEBUG = config('DEBUG', default=True, cast=bool)
+DEBUG = config('DEBUG', default=False, cast=bool)
 
 
 
-ALLOWED_HOSTS = ['*'] # Useful for hackathon network sharing
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
+
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+SECURE_SSL_REDIRECT = not DEBUG
+SECURE_HSTS_SECONDS = 31536000 if not DEBUG else 0
+SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
+SECURE_HSTS_PRELOAD = not DEBUG
 
 
 

@@ -5,10 +5,10 @@ import api, { deliveriesAPI, productsAPI, locationsAPI } from '../../api'
 import {
   Search, Plus, CheckCircle2, XCircle, ChevronLeft,
   ChevronRight, AlertCircle, RefreshCw, Truck,
-  Calendar, User, Filter, ArrowUpDown, X,
-  MapPin, TrendingUp, ChevronDown, PackageOpen
+  Calendar, User, Filter,
+  MapPin, TrendingUp, PackageOpen
 } from 'lucide-react'
-import { SpringModal, CustomDropdown, StaggerContainer, StaggerItem } from '../../components/common/Motion'
+import {  SpringModal, CustomDropdown } from '../../components/common/Motion'
 
 const STATUS_BADGE = {
   draft:     <span className="badge-draft"><span className="w-1.5 h-1.5 bg-gray-500 rounded-full" />Draft</span>,
@@ -74,7 +74,7 @@ function NewDeliveryModal({ onClose, onCreated }) {
     }
   }
 
-  const [productSearch, setProductSearch] = useState('')
+  
   return (
     <SpringModal
       isOpen={true}
@@ -337,7 +337,7 @@ export default function Deliveries() {
     finally   { setLoading(false) }
   }
 
-  useEffect(() => { fetchDeliveries(1) }, [])
+    useEffect(() => { fetchDeliveries(1) }, [])
 
   const openDetail = async (id) => {
     try { const { data } = await deliveriesAPI.getOne(id); setSelectedDelivery(data) }

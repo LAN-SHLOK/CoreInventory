@@ -5,10 +5,10 @@ import { receiptsAPI, productsAPI, locationsAPI } from '../../api'
 import {
   Search, Plus, CheckCircle2, XCircle, ChevronLeft,
   ChevronRight, AlertCircle, RefreshCw, PackageOpen,
-  Calendar, User, Filter, ArrowUpDown, X, Truck,
-  MapPin, TrendingUp, ChevronDown
+  Calendar, User, Filter,
+  MapPin, TrendingUp
 } from 'lucide-react'
-import { SpringModal, CustomDropdown, StaggerContainer, StaggerItem } from '../../components/common/Motion'
+import { SpringModal, CustomDropdown } from '../../components/common/Motion'
 
 const STATUS_BADGE = {
   draft:     <span className="badge-draft"><span className="w-1.5 h-1.5 bg-gray-500 rounded-full" />Draft</span>,
@@ -34,7 +34,7 @@ function NewReceiptModal({ onClose, onCreated }) {
     status:        'DRAFT',
   })
 
-  const [productSearch, setProductSearch] = useState('')
+  
 
   useEffect(() => {
     Promise.all([
@@ -331,7 +331,7 @@ export default function Receipts() {
     finally   { setLoading(false) }
   }
 
-  useEffect(() => { fetchReceipts(1) }, [])
+    useEffect(() => { fetchReceipts(1) }, [])
 
   const openDetail = async (id) => {
     try { const { data } = await receiptsAPI.getOne(id); setSelectedReceipt(data) }

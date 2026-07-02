@@ -4,7 +4,6 @@ import { useAuth } from '../../services/AuthContext'
 import { productsAPI } from '../../api'
 import {
   Filter, ChevronLeft, ChevronRight, Plus,
-  TrendingDown, TrendingUp, ChevronDown,
   RefreshCw, AlertCircle, Search, Boxes, Edit2
 } from 'lucide-react'
 import { AnimatedCard, SpringModal, CustomDropdown, StaggerContainer, StaggerItem } from '../../components/common/Motion'
@@ -272,7 +271,7 @@ export default function Products() {
     } catch {}
   }
 
-  useEffect(() => { 
+      useEffect(() => { 
     fetchProducts(1)
     fetchCategories()
   }, [])

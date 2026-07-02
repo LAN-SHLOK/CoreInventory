@@ -59,7 +59,7 @@ export const CustomDropdown = ({ icon, value, setter, options, placeholder, full
                   >
                     <span className="truncate pr-4">{opt.name}</span>
                     {(value === opt.id || Number(value) === opt.id || String(value) === String(opt.id)) && <div className="w-1 h-1 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)] flex-shrink-0" />}
-                  </motion.div>
+                  </div>
                 ))}
               </div>
             </motion.div>

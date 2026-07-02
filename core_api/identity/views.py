@@ -3,11 +3,11 @@ from django.db.models import Q
 from django.core.mail import send_mail
 from django.conf import settings
 from django.utils import timezone
-from rest_framework import generics, status
-from rest_framework.permissions import AllowAny
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework import generics, status  # pyright: ignore [missing-import]
+from rest_framework.permissions import AllowAny  # pyright: ignore [missing-import]
+from rest_framework.response import Response  # pyright: ignore [missing-import]
+from rest_framework.views import APIView  # pyright: ignore [missing-import]
+from rest_framework_simplejwt.tokens import RefreshToken  # pyright: ignore [missing-import]
 from .serializers import UserSerializer
 from .utils import send_brevo_email
 from .models import PasswordResetOTP
@@ -108,7 +108,7 @@ class ForgotPasswordView(APIView):
 
             # --- PROFESSIONAL COMPANY EMAIL TEMPLATE ---
             subject = 'CoreInventory - Password Reset Request'
-            year = timezone.now().year if hasattr(timezone, 'now') else 2026
+            year = timezone.now().year
             
             html_content = f"""
             <!DOCTYPE html>
@@ -172,18 +172,27 @@ class ForgotPasswordView(APIView):
             </html>
             """
 
-            # Using standard Django send_mail
+            # Using standard Django send_mail asynchronously
             from django.core.mail import send_mail
             from django.conf import settings
-            send_mail(
-                subject=subject,
-                message=f"Your reset code is: {otp}",
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[user.email],
-                html_message=html_content,
-                fail_silently=False,
-            )
-            print(f"SMTP email sent successfully to {user.email}")
+            import threading
+
+            def send_otp_email():
+                try:
+                    send_mail(
+                        subject=subject,
+                        message=f"Your reset code is: {otp}",
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list=[user.email],
+                        html_message=html_content,
+                        fail_silently=False,
+                    )
+                    print(f"SMTP email sent successfully to {user.email} in background thread")
+                except Exception as e:
+                    print(f"Background email failed for {user.email}: {e}")
+
+            # Start thread to prevent blocking the API response
+            threading.Thread(target=send_otp_email).start()
             
             return Response(
                 {'detail': 'If this email exists, a reset code has been sent.'},

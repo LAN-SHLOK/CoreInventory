@@ -1,5 +1,5 @@
 import { useAuth } from '../../services/AuthContext'
-import { User, Mail, Shield, LogOut, Clock, Activity } from 'lucide-react'
+import { User, Mail, Shield, LogOut, Activity } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 export default function Profile() {

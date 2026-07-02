@@ -20,7 +20,6 @@ def create_defaults(apps, schema_editor):
         sku='SKU-001',
         defaults={
             'name': 'Sample Product 1',
-            'category': 'Electronics',
             'unit_of_measure': 'Units',
             'current_stock': 100,
             'price': 10.99

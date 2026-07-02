@@ -37,7 +37,7 @@ export default function MoveHistory() {
     finally { setLoading(false) }
   }
 
-  useEffect(() => { fetchMoves(1) }, [])
+    useEffect(() => { fetchMoves(1) }, [])
 
   const doneCount = moves.filter(m => m.status === 'done').length
   const processingCount = moves.filter(m => m.status === 'ready' || m.status === 'draft').length

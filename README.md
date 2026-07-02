@@ -150,6 +150,8 @@ npm start
 ### **SHLOK**
 - **Frontend Development**: Implementation of premium components and animated interfaces.
 - **Connectivity**: Managing API integrations, state management, and data flow between client and server.
+- **Backend Specialist**: Working alongside BHAVYA on server-side logic and operational workflows.
+- **Quality Assurance**: Testing backend endpoints and ensuring operational reliability.
 
 ### **BHAVYA**
 - **DB & Backend**: Designing database schemas and implementing core Python/Django logic.
@@ -158,7 +160,3 @@ npm start
 ### **JYOTI**
 - **Frontend Help**: Assisting with UI component building, styling, and ensuring design consistency.
 - **UX Refinement**: Helping polish micro-animations and responsive layouts.
-
-### **ARYAN**
-- **Backend Specialist**: Working alongside BHAVYA on server-side logic and operational workflows.
-- **Quality Assurance**: Testing backend endpoints and ensuring operational reliability.

@@ -1,4 +1,4 @@
-from rest_framework import serializers
+from rest_framework import serializers  # pyright: ignore [missing-import]
 from .models import Warehouse, Location, Product, StockMovement
 
 class WarehouseSerializer(serializers.ModelSerializer):

@@ -1,5 +1,5 @@
 from django.contrib.auth.models import User
-from rest_framework import serializers
+from rest_framework import serializers  # pyright: ignore [missing-import]
 
 class UserSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(required=True)

@@ -1,5 +1,5 @@
 import os
-from decouple import config
+from decouple import config  # pyright: ignore [missing-import]
 import sib_api_v3_sdk
 from sib_api_v3_sdk.rest import ApiException
 

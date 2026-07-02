@@ -1,5 +1,5 @@
 from django.urls import path, include
-from rest_framework.routers import DefaultRouter
+from rest_framework.routers import DefaultRouter  # pyright: ignore [missing-import]
 from .views import WarehouseViewSet, LocationViewSet, ProductViewSet, StockMovementViewSet, DashboardSummaryView
 
 router = DefaultRouter()

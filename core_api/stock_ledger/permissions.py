@@ -1,4 +1,4 @@
-from rest_framework import permissions
+from rest_framework import permissions  # pyright: ignore [missing-import]
 
 class IsManagerOrReadOnly(permissions.BasePermission):
     """

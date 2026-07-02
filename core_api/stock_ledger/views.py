@@ -1,22 +1,23 @@
 from django.forms import ValidationError
 from django.shortcuts import render
-from rest_framework import viewsets, permissions, filters
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.decorators import action
+from rest_framework import viewsets, permissions, filters  # pyright: ignore [missing-import]
+from django_filters.rest_framework import DjangoFilterBackend  # pyright: ignore [missing-import]
+from rest_framework.pagination import PageNumberPagination  # pyright: ignore [missing-import]
+from rest_framework.views import APIView  # pyright: ignore [missing-import]
+from rest_framework.response import Response  # pyright: ignore [missing-import]
+from rest_framework.decorators import action  # pyright: ignore [missing-import]
 from .models import Warehouse, Location, Product, StockMovement
 from .serializers import (
     WarehouseSerializer, LocationSerializer, 
     ProductSerializer, StockMovementSerializer
 )
-from rest_framework import status
+from rest_framework import status  # pyright: ignore [missing-import]
 from django.db import transaction, models
 from django.db.models import Sum, Count
 from django.db.models.functions import TruncDate
 from django.utils import timezone
 from datetime import timedelta
-from rest_framework import filters
+from rest_framework import filters  # pyright: ignore [missing-import]
 
 # Create your views here.
 class IsAdminOrReadOnly(permissions.BasePermission):
@@ -370,4 +371,4 @@ class StockMovementViewSet(viewsets.ModelViewSet):
         elif old_status == 'DONE' and new_status == 'CANCELLED':
             # Reverse stock update
             self._update_stock(updated_instance, reverse=True)
-        # Note: DRAFT -> CANCELLED doesn't need stock update
+        # Note: DRAFT -> CANCELLED doesn't need stock update

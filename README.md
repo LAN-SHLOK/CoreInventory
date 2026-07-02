@@ -48,8 +48,8 @@ flowchart TD
     User --> Auth
     Auth -- Valid JWT --> Dashboard
     
-    Dashboard --> Catalog : Manage SKUs
-    Dashboard --> Operations : Perform Movement
+    Dashboard --> Catalog
+    Dashboard --> Operations
     
     R --> Ledger
     D --> Ledger

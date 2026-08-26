@@ -88,7 +88,7 @@ import dj_database_url  # pyright: ignore [missing-import]
 
 DATABASES = {
     'default': dj_database_url.config(
-        default=default='postgresql://postgres.vtngsiscyocwxwlbmfjo:YhYH7jZALDPnoF3y@aws-0-ap-southeast-2.pooler.supabase.com:6543/postgres',
+        default='postgresql://postgres.vtngsiscyocwxwlbmfjo:YhYH7jZALDPnoF3y@aws-0-ap-southeast-2.pooler.supabase.com:6543/postgres',
         # Supabase uses PgBouncer (Connection Pooler) on port 6543.
         # When using a pooler in Transaction Mode, conn_max_age MUST be 0.
         conn_max_age=0,

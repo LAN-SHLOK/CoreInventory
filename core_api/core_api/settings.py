@@ -87,7 +87,7 @@ WSGI_APPLICATION = 'core_api.wsgi.application'
 import dj_database_url  # pyright: ignore [missing-import]  
 DATABASES = {
     'default': dj_database_url.config(
-        default='postgresql://postgres.vtngsiscyocwxwlbmfjo:YhYH7jZALDPnoF3y@aws-0-ap-south-1.pooler.supabase.com:6543/postgres',
+        default='postgresql://postgres.vtngsiscyocwxwlbmfjo:YhYH7jZALDPnoF3y@aws-0-ap-southeast-2.pooler.supabase.com:6543/postgres?pgbouncer=true,
         conn_max_age=0,
     )
 }

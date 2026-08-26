@@ -85,15 +85,13 @@ WSGI_APPLICATION = 'core_api.wsgi.application'
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 import dj_database_url  # pyright: ignore [missing-import]  
-
 DATABASES = {
     'default': dj_database_url.config(
-        default='postgresql://postgres:YhYH7jZALDPnoF3y@db.vtngsiscyocwxwlbmfjo.supabase.co:5432/postgres',
-        # Supabase uses PgBouncer (Connection Pooler) on port 6543.
-        # When using a pooler in Transaction Mode, conn_max_age MUST be 0.
+        default='postgresql://postgres.vtngsiscyocwxwlbmfjo:YhYH7jZALDPnoF3y@aws-0-ap-south-1.pooler.supabase.com:6543/postgres',
         conn_max_age=0,
     )
 }
+
 
 # Automatically force SSL for Cloud PostgreSQL providers (like Neon, Aiven, AWS RDS)
 if 'postgresql' in DATABASES['default']['ENGINE']:

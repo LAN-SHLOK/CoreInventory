@@ -57,7 +57,7 @@ class StockMovement(models.Model):
     movement_type = models.CharField(max_length=20, choices=TYPE_CHOICES)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='DONE')
     
-     Document Reference (e.g., Invoice #, PO #)
+    # Document Reference (e.g., Invoice #, PO #)
     reference = models.CharField(max_length=100, blank=True, null=True)
     
     # Source/Destination for Transfers and tracking
@@ -65,7 +65,7 @@ class StockMovement(models.Model):
     destination = models.ForeignKey(Location, on_delete=models.SET_NULL, null=True, blank=True, related_name='stock_in')
     
     quantity = models.IntegerField()
-    date = models.DateTimeField(auto_now_add=True)  Filter by Date
+    date = models.DateTimeField(auto_now_add=True)  # Filter by Date
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     
     contact = models.CharField(max_length=100, blank=True, null=True, help_text="Vendor or Customer name")

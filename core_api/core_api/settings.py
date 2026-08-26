@@ -88,10 +88,17 @@ import dj_database_url  # pyright: ignore [missing-import]
 
 DATABASES = {
     'default': dj_database_url.config(
-        default=f'sqlite:///{BASE_DIR / "db.sqlite3"}',
-        conn_max_age=600,
+        default='postgresql://postgres:YhYH7jZALDPnoF3y@db.vtngsiscyocwxwlbmfjo.supabase.co:5432/postgres',
+        # Supabase uses PgBouncer (Connection Pooler) on port 6543.
+        # When using a pooler in Transaction Mode, conn_max_age MUST be 0.
+        conn_max_age=0,
     )
 }
+
+# Automatically force SSL for Cloud PostgreSQL providers (like Neon, Aiven, AWS RDS)
+if 'postgresql' in DATABASES['default']['ENGINE']:
+    DATABASES['default'].setdefault('OPTIONS', {})
+    DATABASES['default']['OPTIONS']['sslmode'] = 'require'
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
 
@@ -178,7 +185,13 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 
 
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,*').split(',')
+
+# Allow all origins for easier deployment, or fallback to specified origins
+CORS_ALLOW_ALL_ORIGINS = config('CORS_ALLOW_ALL_ORIGINS', default=True, cast=bool)
+
+# Tell Django to trust the X-Forwarded-Proto header from the proxy (Render/Heroku)
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
@@ -189,7 +202,6 @@ SECURE_SSL_REDIRECT = not DEBUG
 SECURE_HSTS_SECONDS = 31536000 if not DEBUG else 0
 SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
 SECURE_HSTS_PRELOAD = not DEBUG
-
 
 
 # ... (Keep INSTALLED_APPS and MIDDLEWARE as they are) ...
